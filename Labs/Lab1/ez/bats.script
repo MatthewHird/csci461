@@ -1,0 +1,40 @@
+include(CewDir/bin/cew.gdb)
+# Cew for asm Testing Script
+# Peter Walsh Mar 2002
+
+#------------ gdb/cew Initialization ---------------
+   set remotebaud 9600
+   target buffalo /dev/ttyS0
+   # example not for sim
+   load main.elf
+   set language asm
+   cew_Variables
+
+#-------------- Local Assumptions -----------------
+#   none
+
+#-------------- Local Constants -------------------
+#   none
+
+#-------------- Local Functions -------------------
+#   none
+
+#---------------- Test Cases -----------------------
+
+   #set {unsigned char}(0x00ee)=0x7e
+   #set {short int}(0x00ef)=irqCount
+   #set {unsigned char}&COUNT=0
+ 
+   break *xirqCount
+   run
+   
+   cew_Ncase( , {unsigned char}&COUNT, 1)
+   continue
+
+   cew_Ncase( , {unsigned char}&COUNT, 2)
+   continue
+
+   cew_Ncase( , {unsigned char}&COUNT, 3)
+
+   cew_Summary
+   quit
