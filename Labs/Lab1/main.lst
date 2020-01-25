@@ -1,0 +1,510 @@
+M68HC11 GAS  soft.s 			page 1
+
+
+   1                 	;;;-----------------------------------------
+   2                 	;;; Start MC68HC11 gcc assembly output
+   3                 	;;; gcc compiler 3.3.6-m68hc1x-20060122
+   4                 	;;; Command:	/usr/lib/gcc-lib/m68hc11/3.3.6-m68hc1x-20060122/cc1 -quiet -D__GNUC__=3 -D__GNUC_MINOR
+   5                 	;;; Compiled:	Fri Jan 24 15:18:19 2020
+   6                 	;;; (META)compiled by GNU C version 6.3.0 20170221.
+   7                 	;;;-----------------------------------------
+   8                 		.file	"main.c"
+   9                 		.mode mshort
+  10                 		.globl	sto_count
+  11                 		.sect	.data
+  12                 		.type	sto_count, @object
+  13                 		.size	sto_count, 2
+  14                 	sto_count:
+  15 0000 00 00       		.word	0
+  16                 		.globl	lto_count
+  17                 		.type	lto_count, @object
+  18                 		.size	lto_count, 2
+  19                 	lto_count:
+  20 0002 00 00       		.word	0
+  21                 		.globl	state
+  22                 		.type	state, @object
+  23                 		.size	state, 1
+  24                 	state:
+  25 0004 00          		.byte	0
+  26                 		.globl	is_car
+  27                 		.type	is_car, @object
+  28                 		.size	is_car, 1
+  29                 	is_car:
+  30 0005 00          		.byte	0
+  31                 		.globl	is_wait
+  32                 		.type	is_wait, @object
+  33                 		.size	is_wait, 1
+  34                 	is_wait:
+  35 0006 01          		.byte	1
+  36                 		.globl	sto_flag
+  37                 		.type	sto_flag, @object
+  38                 		.size	sto_flag, 1
+  39                 	sto_flag:
+  40 0007 00          		.byte	0
+  41                 		.globl	lto_flag
+  42                 		.type	lto_flag, @object
+  43                 		.size	lto_flag, 1
+  44                 	lto_flag:
+  45 0008 00          		.byte	0
+  46                 		.globl	isr_str
+  47                 		.type	isr_str, @object
+  48                 		.size	isr_str, 100
+  49                 	isr_str:
+  50 0009 49 53 52 20 		.string	"ISR Happened!\n\004"
+  50      48 61 70 70 
+  50      65 6E 65 64 
+  50      21 0A 04 00 
+  51 0019 00 00 00 00 		.zero	84
+  51      00 00 00 00 
+  51      00 00 00 00 
+  51      00 00 00 00 
+M68HC11 GAS  soft.s 			page 2
+
+
+  51      00 00 00 00 
+  52                 		.globl	here_str
+  53                 		.type	here_str, @object
+  54                 		.size	here_str, 100
+  55                 	here_str:
+  56 006d 49 27 6D 20 		.string	"I'm here!!\n\004"
+  56      68 65 72 65 
+  56      21 21 0A 04 
+  56      00 
+  57 007a 00 00 00 00 		.zero	87
+  57      00 00 00 00 
+  57      00 00 00 00 
+  57      00 00 00 00 
+  57      00 00 00 00 
+  58                 		.globl	x_str
+  59                 		.type	x_str, @object
+  60                 		.size	x_str, 100
+  61                 	x_str:
+  62 00d1 78 04 00    		.string	"x\004"
+  63 00d4 00 00 00 00 		.zero	97
+  63      00 00 00 00 
+  63      00 00 00 00 
+  63      00 00 00 00 
+  63      00 00 00 00 
+  64                 		; extern	frame_sync_isr
+  65                 		; extern	wstr
+  66                 		.sect	.text
+  67                 		.globl	_start
+  68                 		.type	_start,@function
+  69                 	_start:
+  70                 	; Begin inline assembler code
+  71                 	#APP
+  72 0000 0F          		sei
+  73                 	; End of inline assembler code
+  74                 	#NO_APP
+  75 0001 CE 10 DC    		ldx	#4316
+  76 0004 C6 7E       		ldab	#126
+  77 0006 E7 00       		stab	0,x
+  78 0008 CE 10 DD    		ldx	#4317
+  79 000b CC 00 00    		ldd	#frame_sync_isr
+  80 000e ED 00       		std	0,x
+  81 0010 CE 10 22    		ldx	#4130
+  82 0013 1C 00 40    		bset	0,x, #64
+  83 0016 CE 10 23    		ldx	#4131
+  84 0019 1C 00 40    		bset	0,x, #64
+  85 001c CE 10 0E    		ldx	#4110
+  86 001f EC 00       		ldd	0,x
+  87 0021 C3 0D 40    		addd	#3392
+  88 0024 CE 10 18    		ldx	#4120
+  89 0027 ED 00       		std	0,x
+  90                 	; Begin inline assembler code
+  91                 	#APP
+  92 0029 0E          		cli
+  93                 	; End of inline assembler code
+  94                 	#NO_APP
+  95 002a C6 01       		ldab	#1
+  96 002c F7 00 00    		stab	is_wait
+M68HC11 GAS  soft.s 			page 3
+
+
+  97 002f CC 00 00    		ldd	#here_str
+  98                 	.L10:
+  99 0032 BD 00 00    		bsr	wstr
+ 100 0035 CC 00 00    		ldd	#x_str
+ 101 0038 20 F8       		bra	.L10
+ 102                 		.size	_start, .-_start
+ 103                 		.globl	frame_sync_isr
+ 104                 		.type	frame_sync_isr,@function
+ 105                 		.interrupt	frame_sync_isr
+ 106                 	frame_sync_isr:
+ 107 003a DE 00       		ldx	*_.tmp
+ 108 003c 3C          		pshx
+ 109 003d DE 00       		ldx	*_.z
+ 110 003f 3C          		pshx
+ 111 0040 DE 00       		ldx	*_.xy
+ 112 0042 3C          		pshx
+ 113 0043 CE 10 23    		ldx	#4131
+ 114 0046 1C 00 40    		bset	0,x, #64
+ 115 0049 7F 00 00    		clr	is_wait
+ 116 004c 38          		pulx
+ 117 004d DF 00       		stx	*_.xy
+ 118 004f 38          		pulx
+ 119 0050 DF 00       		stx	*_.z
+ 120 0052 38          		pulx
+ 121 0053 DF 00       		stx	*_.tmp
+ 122 0055 3B          		rti
+ 123                 		.size	frame_sync_isr, .-frame_sync_isr
+ 124                 		.globl	read_car_in
+ 125                 		.type	read_car_in,@function
+ 126                 	read_car_in:
+ 127 0056 CE 10 00    		ldx	#4096
+ 128 0059 E6 00       		ldab	0,x
+ 129 005b 84 00       		anda	#0
+ 130 005d C4 02       		andb	#2
+ 131 005f DD 00       		std	*_.tmp
+ 132 0061 27 02       		beq	.L13
+ 133 0063 C6 01       		ldab	#1
+ 134                 	.L13:
+ 135 0065 F7 00 00    		stab	is_car
+ 136 0068 39          		rts
+ 137                 		.size	read_car_in, .-read_car_in
+ 138                 		.globl	update_sto
+ 139                 		.type	update_sto,@function
+ 140                 	update_sto:
+ 141 0069 FC 00 00    		ldd	sto_count
+ 142 006c 1A 83 00 1D 		cpd	#29
+ 143 0070 22 07       		bhi	.L16
+ 144 0072 FE 00 00    		ldx	sto_count
+ 145 0075 08          		inx
+ 146 0076 FF 00 00    		stx	sto_count
+ 147                 	.L16:
+ 148 0079 FC 00 00    		ldd	sto_count
+ 149 007c 1A 83 00 1E 		cpd	#30
+ 150 0080 26 06       		bne	.L17
+ 151 0082 C6 01       		ldab	#1
+ 152 0084 F7 00 00    		stab	sto_flag
+ 153 0087 39          		rts
+M68HC11 GAS  soft.s 			page 4
+
+
+ 154                 	.L17:
+ 155 0088 7F 00 00    		clr	sto_flag
+ 156 008b 39          		rts
+ 157                 		.size	update_sto, .-update_sto
+ 158                 		.globl	update_lto
+ 159                 		.type	update_lto,@function
+ 160                 	update_lto:
+ 161 008c FC 00 00    		ldd	lto_count
+ 162 008f 1A 83 00 63 		cpd	#99
+ 163 0093 22 07       		bhi	.L20
+ 164 0095 FE 00 00    		ldx	lto_count
+ 165 0098 08          		inx
+ 166 0099 FF 00 00    		stx	lto_count
+ 167                 	.L20:
+ 168 009c FC 00 00    		ldd	lto_count
+ 169 009f 1A 83 00 64 		cpd	#100
+ 170 00a3 26 06       		bne	.L21
+ 171 00a5 C6 01       		ldab	#1
+ 172 00a7 F7 00 00    		stab	lto_flag
+ 173 00aa 39          		rts
+ 174                 	.L21:
+ 175 00ab 7F 00 00    		clr	lto_flag
+ 176 00ae 39          		rts
+ 177                 		.size	update_lto, .-update_lto
+ 178                 		.globl	update_state
+ 179                 		.type	update_state,@function
+ 180                 	update_state:
+ 181 00af F6 00 00    		ldab	state
+ 182 00b2 D7 01       		stab	*_.tmp+1
+ 183 00b4 DE 00       		ldx	*_.tmp
+ 184 00b6 8F          		xgdx
+ 185 00b7 4F          		clra
+ 186 00b8 8F          		xgdx
+ 187 00b9 8C 00 40    		cpx	#64
+ 188 00bc 27 67       		beq	.L35
+ 189 00be 2E 0B       		bgt	.L39
+ 190 00c0 8C 00 00    		cpx	#0
+ 191 00c3 27 0C       		beq	.L25
+ 192 00c5 8C 00 20    		cpx	#32
+ 193 00c8 27 25       		beq	.L28
+ 194 00ca 39          		rts
+ 195                 	.L39:
+ 196 00cb 8C 00 60    		cpx	#96
+ 197 00ce 27 30       		beq	.L31
+ 198 00d0 39          		rts
+ 199                 	.L25:
+ 200 00d1 F6 00 00    		ldab	is_car
+ 201 00d4 C1 01       		cmpb	#1
+ 202 00d6 26 13       		bne	.L26
+ 203 00d8 F6 00 00    		ldab	lto_flag
+ 204 00db C1 01       		cmpb	#1
+ 205 00dd 26 0C       		bne	.L26
+ 206 00df C6 20       		ldab	#32
+ 207 00e1 F7 00 00    		stab	state
+ 208 00e4 FF 00 00    		stx	sto_count
+ 209 00e7 FF 00 00    		stx	lto_count
+ 210 00ea 39          		rts
+M68HC11 GAS  soft.s 			page 5
+
+
+ 211                 	.L26:
+ 212 00eb 7F 00 00    		clr	state
+ 213 00ee 39          		rts
+ 214                 	.L28:
+ 215 00ef F6 00 00    		ldab	sto_flag
+ 216 00f2 C1 01       		cmpb	#1
+ 217 00f4 26 04       		bne	.L29
+ 218 00f6 C6 60       		ldab	#96
+ 219 00f8 20 1B       		bra	.L40
+ 220                 	.L29:
+ 221 00fa C6 20       		ldab	#32
+ 222 00fc F7 00 00    		stab	state
+ 223 00ff 39          		rts
+ 224                 	.L31:
+ 225 0100 F6 00 00    		ldab	is_car
+ 226 0103 26 07       		bne	.L34
+ 227 0105 F6 00 00    		ldab	sto_flag
+ 228 0108 C1 01       		cmpb	#1
+ 229 010a 27 07       		beq	.L33
+ 230                 	.L34:
+ 231 010c F6 00 00    		ldab	lto_flag
+ 232 010f C1 01       		cmpb	#1
+ 233 0111 26 28       		bne	.L23
+ 234                 	.L33:
+ 235 0113 C6 40       		ldab	#64
+ 236                 	.L40:
+ 237 0115 F7 00 00    		stab	state
+ 238 0118 7F 00 01    		clr	sto_count+1
+ 239 011b 7F 00 00    		clr	sto_count
+ 240 011e 7F 00 01    		clr	lto_count+1
+ 241 0121 7F 00 00    		clr	lto_count
+ 242 0124 39          		rts
+ 243                 	.L35:
+ 244 0125 F6 00 00    		ldab	sto_flag
+ 245 0128 C1 01       		cmpb	#1
+ 246 012a 26 0F       		bne	.L23
+ 247 012c 7F 00 00    		clr	state
+ 248 012f 7F 00 01    		clr	sto_count+1
+ 249 0132 7F 00 00    		clr	sto_count
+ 250 0135 7F 00 01    		clr	lto_count+1
+ 251 0138 7F 00 00    		clr	lto_count
+ 252                 	.L23:
+ 253 013b 39          		rts
+ 254                 		.size	update_state, .-update_state
+ 255                 		.globl	set_light_out
+ 256                 		.type	set_light_out,@function
+ 257                 	set_light_out:
+ 258 013c 3C          		pshx
+ 259 013d CE 10 00    		ldx	#4096
+ 260 0140 E6 00       		ldab	0,x
+ 261 0142 C4 9F       		andb	#-97
+ 262 0144 18 30       		tsy
+ 263 0146 18 E7 00    		stab	0,y
+ 264 0149 F6 00 00    		ldab	state
+ 265 014c 18 EA 00    		orab	0,y
+ 266 014f 18 E7 01    		stab	1,y
+ 267 0152 E7 00       		stab	0,x
+M68HC11 GAS  soft.s 			page 6
+
+
+ 268 0154 38          		pulx
+ 269 0155 39          		rts
+ 270                 		.size	set_light_out, .-set_light_out
+ 271                 		.ident	"GCC: (GNU) 3.3.6-m68hc1x-20060122"
+   1                 	;===================
+   2                 	; soft registers
+   3                 	;===================
+   4                 	.sect softregs
+   5                 	.global _.d1
+   6                 	_.d1: .word
+   7                 	.global _.tmp
+   8                 	_.tmp: .word
+   9                 	.global _.z
+  10                 	_.z: .word
+  11                 	.global _.xy
+  12                 	_.xy: .word
+  13                 	
+M68HC11 GAS  soft.s 			page 7
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 main.c
+              main.s:0      .text:0000000000000000 L0F0
+              main.s:14     .data:0000000000000000 sto_count
+              main.s:19     .data:0000000000000002 lto_count
+              main.s:24     .data:0000000000000004 state
+              main.s:29     .data:0000000000000005 is_car
+              main.s:34     .data:0000000000000006 is_wait
+              main.s:39     .data:0000000000000007 sto_flag
+              main.s:44     .data:0000000000000008 lto_flag
+              main.s:49     .data:0000000000000009 isr_str
+              main.s:55     .data:000000000000006d here_str
+              main.s:61     .data:00000000000000d1 x_str
+              main.s:69     .text:0000000000000000 _start
+              main.s:72     .text:0000000000000000 L0L0
+              main.s:75     .text:0000000000000001 L0L1
+              main.s:76     .text:0000000000000004 L0L2
+              main.s:77     .text:0000000000000006 L0L3
+              main.s:78     .text:0000000000000008 L0L4
+              main.s:79     .text:000000000000000b L0L5
+              main.s:106    .text:000000000000003a frame_sync_isr
+              main.s:80     .text:000000000000000e L0L6
+              main.s:81     .text:0000000000000010 L0L7
+              main.s:82     .text:0000000000000013 L0L8
+              main.s:83     .text:0000000000000016 L0L9
+              main.s:84     .text:0000000000000019 L0L10
+              main.s:85     .text:000000000000001c L0L11
+              main.s:86     .text:000000000000001f L0L12
+              main.s:87     .text:0000000000000021 L0L13
+              main.s:88     .text:0000000000000024 L0L14
+              main.s:89     .text:0000000000000027 L0L15
+              main.s:92     .text:0000000000000029 L0L16
+              main.s:95     .text:000000000000002a L0L17
+              main.s:96     .text:000000000000002c L0L18
+              main.s:97     .text:000000000000002f L0L19
+              main.s:99     .text:0000000000000032 L0L20
+              main.s:100    .text:0000000000000035 L0L21
+              main.s:101    .text:0000000000000038 L0L22
+              main.s:107    .text:000000000000003a L0L23
+              soft.s:8      softregs:0000000000000000 _.tmp
+              main.s:108    .text:000000000000003c L0L24
+              main.s:109    .text:000000000000003d L0L25
+              soft.s:10     softregs:0000000000000000 _.z
+              main.s:110    .text:000000000000003f L0L26
+              main.s:111    .text:0000000000000040 L0L27
+              soft.s:12     softregs:0000000000000000 _.xy
+              main.s:112    .text:0000000000000042 L0L28
+              main.s:113    .text:0000000000000043 L0L29
+              main.s:114    .text:0000000000000046 L0L30
+              main.s:115    .text:0000000000000049 L0L31
+              main.s:116    .text:000000000000004c L0L32
+              main.s:117    .text:000000000000004d L0L33
+              main.s:118    .text:000000000000004f L0L34
+              main.s:119    .text:0000000000000050 L0L35
+              main.s:120    .text:0000000000000052 L0L36
+              main.s:121    .text:0000000000000053 L0L37
+              main.s:122    .text:0000000000000055 L0L38
+M68HC11 GAS  soft.s 			page 8
+
+
+              main.s:126    .text:0000000000000056 read_car_in
+              main.s:127    .text:0000000000000056 L0L39
+              main.s:128    .text:0000000000000059 L0L40
+              main.s:129    .text:000000000000005b L0L41
+              main.s:130    .text:000000000000005d L0L42
+              main.s:131    .text:000000000000005f L0L43
+              main.s:132    .text:0000000000000061 L0L44
+              main.s:133    .text:0000000000000063 L0L45
+              main.s:135    .text:0000000000000065 L0L46
+              main.s:136    .text:0000000000000068 L0L47
+              main.s:140    .text:0000000000000069 update_sto
+              main.s:141    .text:0000000000000069 L0L48
+              main.s:142    .text:000000000000006c L0L49
+              main.s:143    .text:0000000000000070 L0L50
+              main.s:144    .text:0000000000000072 L0L51
+              main.s:145    .text:0000000000000075 L0L52
+              main.s:146    .text:0000000000000076 L0L53
+              main.s:148    .text:0000000000000079 L0L54
+              main.s:149    .text:000000000000007c L0L55
+              main.s:150    .text:0000000000000080 L0L56
+              main.s:151    .text:0000000000000082 L0L57
+              main.s:152    .text:0000000000000084 L0L58
+              main.s:153    .text:0000000000000087 L0L59
+              main.s:155    .text:0000000000000088 L0L60
+              main.s:156    .text:000000000000008b L0L61
+              main.s:160    .text:000000000000008c update_lto
+              main.s:161    .text:000000000000008c L0L62
+              main.s:162    .text:000000000000008f L0L63
+              main.s:163    .text:0000000000000093 L0L64
+              main.s:164    .text:0000000000000095 L0L65
+              main.s:165    .text:0000000000000098 L0L66
+              main.s:166    .text:0000000000000099 L0L67
+              main.s:168    .text:000000000000009c L0L68
+              main.s:169    .text:000000000000009f L0L69
+              main.s:170    .text:00000000000000a3 L0L70
+              main.s:171    .text:00000000000000a5 L0L71
+              main.s:172    .text:00000000000000a7 L0L72
+              main.s:173    .text:00000000000000aa L0L73
+              main.s:175    .text:00000000000000ab L0L74
+              main.s:176    .text:00000000000000ae L0L75
+              main.s:180    .text:00000000000000af update_state
+              main.s:181    .text:00000000000000af L0L76
+              main.s:182    .text:00000000000000b2 L0L77
+              main.s:183    .text:00000000000000b4 L0L78
+              main.s:184    .text:00000000000000b6 L0L79
+              main.s:185    .text:00000000000000b7 L0L80
+              main.s:186    .text:00000000000000b8 L0L81
+              main.s:187    .text:00000000000000b9 L0L82
+              main.s:188    .text:00000000000000bc L0L83
+              main.s:189    .text:00000000000000be L0L84
+              main.s:190    .text:00000000000000c0 L0L85
+              main.s:191    .text:00000000000000c3 L0L86
+              main.s:192    .text:00000000000000c5 L0L87
+              main.s:193    .text:00000000000000c8 L0L88
+              main.s:194    .text:00000000000000ca L0L89
+              main.s:196    .text:00000000000000cb L0L90
+              main.s:197    .text:00000000000000ce L0L91
+M68HC11 GAS  soft.s 			page 9
+
+
+              main.s:198    .text:00000000000000d0 L0L92
+              main.s:200    .text:00000000000000d1 L0L93
+              main.s:201    .text:00000000000000d4 L0L94
+              main.s:202    .text:00000000000000d6 L0L95
+              main.s:203    .text:00000000000000d8 L0L96
+              main.s:204    .text:00000000000000db L0L97
+              main.s:205    .text:00000000000000dd L0L98
+              main.s:206    .text:00000000000000df L0L99
+              main.s:207    .text:00000000000000e1 L0L100
+              main.s:208    .text:00000000000000e4 L0L101
+              main.s:209    .text:00000000000000e7 L0L102
+              main.s:210    .text:00000000000000ea L0L103
+              main.s:212    .text:00000000000000eb L0L104
+              main.s:213    .text:00000000000000ee L0L105
+              main.s:215    .text:00000000000000ef L0L106
+              main.s:216    .text:00000000000000f2 L0L107
+              main.s:217    .text:00000000000000f4 L0L108
+              main.s:218    .text:00000000000000f6 L0L109
+              main.s:219    .text:00000000000000f8 L0L110
+              main.s:221    .text:00000000000000fa L0L111
+              main.s:222    .text:00000000000000fc L0L112
+              main.s:223    .text:00000000000000ff L0L113
+              main.s:225    .text:0000000000000100 L0L114
+              main.s:226    .text:0000000000000103 L0L115
+              main.s:227    .text:0000000000000105 L0L116
+              main.s:228    .text:0000000000000108 L0L117
+              main.s:229    .text:000000000000010a L0L118
+              main.s:231    .text:000000000000010c L0L119
+              main.s:232    .text:000000000000010f L0L120
+              main.s:233    .text:0000000000000111 L0L121
+              main.s:235    .text:0000000000000113 L0L122
+              main.s:237    .text:0000000000000115 L0L123
+              main.s:238    .text:0000000000000118 L0L124
+              main.s:239    .text:000000000000011b L0L125
+              main.s:240    .text:000000000000011e L0L126
+              main.s:241    .text:0000000000000121 L0L127
+              main.s:242    .text:0000000000000124 L0L128
+              main.s:244    .text:0000000000000125 L0L129
+              main.s:245    .text:0000000000000128 L0L130
+              main.s:246    .text:000000000000012a L0L131
+              main.s:247    .text:000000000000012c L0L132
+              main.s:248    .text:000000000000012f L0L133
+              main.s:249    .text:0000000000000132 L0L134
+              main.s:250    .text:0000000000000135 L0L135
+              main.s:251    .text:0000000000000138 L0L136
+              main.s:253    .text:000000000000013b L0L137
+              main.s:257    .text:000000000000013c set_light_out
+              main.s:258    .text:000000000000013c L0L138
+              main.s:259    .text:000000000000013d L0L139
+              main.s:260    .text:0000000000000140 L0L140
+              main.s:261    .text:0000000000000142 L0L141
+              main.s:262    .text:0000000000000144 L0L142
+              main.s:263    .text:0000000000000146 L0L143
+              main.s:264    .text:0000000000000149 L0L144
+              main.s:265    .text:000000000000014c L0L145
+              main.s:266    .text:000000000000014f L0L146
+              main.s:267    .text:0000000000000152 L0L147
+M68HC11 GAS  soft.s 			page 10
+
+
+              main.s:268    .text:0000000000000154 L0L148
+              main.s:269    .text:0000000000000155 L0L149
+              soft.s:0      .text:0000000000000156 L0F1
+              soft.s:6      softregs:0000000000000000 _.d1
+
+UNDEFINED SYMBOLS
+wstr

@@ -7,9 +7,6 @@
 #   clean
 #   submit -- submit assignment code
 
-# source file
-SRC=foolib
-
 # directory where scripts are located and temp files
 SD=CewDir
 
@@ -34,11 +31,11 @@ default: main.elf
 interactive: main.elf
 	$(GDB) main.elf
 
+buff.o: buff.s buff.h
+	$(AS) -a=buff.lst --gstabs -o buff.o buff.s
+
 clean:
 	rm -f *.o *.elf *.gdb *.lst $(SD)/tmp/*
-
-$(SRC).o: $(SRC).s
-	$(AS)   -a=$(SRC).lst --gstabs -o $(SRC).o $(SRC).s
 
 main.s: main.c
 	$(CC) -S -Os -fomit-frame-pointer -mshort main.c
@@ -46,6 +43,6 @@ main.s: main.c
 main.o: main.s
 	$(AS) -a=main.lst --gstabs -o main.o main.s soft.s
 
-main.elf: main.o $(SRC).o
-	$(LD) -O0 --verbose -N -mshort -mm68hc11elfb main.o $(SRC).o -o main.elf
+main.elf: main.o buff.o
+	$(LD) -O0 --verbose -N -mshort -mm68hc11elfb main.o buff.o -o main.elf
 	$(OC) -O srec --only-section=.text --only-section=.data main.elf main.s19

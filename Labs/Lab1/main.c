@@ -33,16 +33,17 @@
   ======================================================================*/
 
 //
-#define OPCODE_JMP_EXTENDED (0x7e)
+#define OPCODE_JMP_EXTENDED 0x7e
 
 // HC11 Vector, Flag, & Port Access Points
 #define jump_table_toc2_opcode *(volatile unsigned char *)(0x10dc)
-#define jump_table_toc2_address *(volatile short int *)(0x10dd)
-#define tmsk1 *(volatile unsigned char *)(0x1022)
+#define jump_table_toc2_isr *(volatile short int *)(0x10dd)
+
 #define port_a *(volatile unsigned char *)(0x1000)
-#define toc2 *(volatile short int *)(0x1018)
 #define tcnt *(volatile short int *)(0x100e)
+#define toc2 *(volatile short int *)(0x1018)
 #define tctl1 *(volatile unsigned char *)(0x1020)
+#define tmsk1 *(volatile unsigned char *)(0x1022)
 #define tflg1 *(volatile unsigned char *)(0x1023)
 
 // Values to CLEAR_OC2_MASK HC11 flags
@@ -83,6 +84,11 @@ volatile unsigned char is_wait = TRUE;
 volatile unsigned char sto_flag = FALSE;
 volatile unsigned char lto_flag = FALSE;
 
+// imported from buff.s
+void wstr(char* s);
+void wcrlf(void);
+
+
 void frame_sync_isr(void) __attribute__((interrupt));
 void read_car_in(void);
 void update_sto(void);
@@ -90,39 +96,45 @@ void update_lto(void);
 void update_state(void);
 void set_light_out(void);
 
+char isr_str[100] = "ISR Happened!\n\4";
+char here_str[100] = "I'm here!!\n\4";
+char x_str[100] = "x\4";
 
 unsigned char _start() {
     // enable interrupts
     __asm__("sei");
     jump_table_toc2_opcode = OPCODE_JMP_EXTENDED;
-    jump_table_toc2_address = *(short int *) frame_sync_isr;
-    // jump_table_toc2_address = (short int *) frame_sync_isr;
-    // jump_table_toc2_address = (short int) &frame_sync_isr;
-    // jump_table_toc2_address = (short int) frame_sync_isr;
-    // jump_table_toc2_address = &frame_sync_isr;
+    jump_table_toc2_isr = (short int *) frame_sync_isr;
     tmsk1 |= OC2_MASK;
-    tflg1 = CLEAR_OC2_MASK;
+    tflg1 |= CLEAR_OC2_MASK;
     toc2 = tcnt + FRAME_LENGTH;
 
     __asm__("cli");
-    set_light_out();
+    // set_light_out();
 
     while (TRUE) {
         is_wait = TRUE;
-        while (is_wait == TRUE) {};
-        read_car_in();
-        update_sto();
-        update_lto();
-        update_state();
-        set_light_out();
+        wstr((char *) here_str);
+        // while (is_wait == TRUE) {};
+
+        while (TRUE) {
+            wstr((char *) x_str);
+        }
+        // read_car_in();
+        // update_sto();
+        // update_lto();
+        // update_state();
+        // set_light_out();
     }
 
     return 0;
 }
 
 void frame_sync_isr(void) {
-    tflg1 = CLEAR_OC2_MASK;
-    toc2 += FRAME_LENGTH;
+    wstr((char *) isr_str);
+    tflg1 |= CLEAR_OC2_MASK;
+    // toc2 += FRAME_LENGTH;
+    toc2 = toc2 + FRAME_LENGTH;
     is_wait = FALSE;
 }
 
