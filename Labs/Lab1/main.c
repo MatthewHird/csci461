@@ -18,11 +18,12 @@
     +---------------------------------+
 
   Assumptions:
+    Program is executed through the Buffalo Monitor and can access 
+        the Buffalo Monitor Interrupt Jump Table
     Program uses interrupts to its advantage.
 
-
   Pins: 
-    Program is designed to use following pins on the HC11: 
+    Program is designed to use the following I/O pins on the HC11: 
       IN:
         PA1 -> Farm-road Car Sensor
       OUT:
@@ -30,14 +31,12 @@
         PA5 -> State(Low Bit)
 
   Author: Matthew Hird
+  Date: Jan 29 2019
   ======================================================================*/
 
-//
-#define OPCODE_JMP_EXTENDED 0x7e
-
 // HC11 Vector, Flag, & Port Access Points
-#define jump_table_toc2_opcode *(volatile unsigned char *)(0x10dc)
-#define jump_table_toc2_isr *(volatile short int *)(0x10dd)
+#define jump_table_toc2_opcode *(volatile unsigned char *)(0x00dc)
+#define jump_table_toc2_isr *(volatile short int *)(0x00dd)
 
 #define port_a *(volatile unsigned char *)(0x1000)
 #define tcnt *(volatile short int *)(0x100e)
@@ -46,8 +45,11 @@
 #define tmsk1 *(volatile unsigned char *)(0x1022)
 #define tflg1 *(volatile unsigned char *)(0x1023)
 
-// Values to CLEAR_OC2_MASK HC11 flags
-#define OC2_MASK (0x40)  // 01000000
+// HC11 Opcodes
+#define OPCODE_JMP_EXTENDED 0x7e
+
+// OC2 Masks
+#define OC2_MASK (0x40)         // 01000000
 #define CLEAR_OC2_MASK (OC2_MASK)
 
 // OUTPUT
@@ -59,11 +61,13 @@
 #define CAR_IN_BIT (0x02)       // P1
 #define CAR_IN_MASK (CAR_IN_BIT)
 
+// FSM States
 #define HG_STATE (0x00)         // 00000000
 #define HY_STATE (0x20)         // 00100000
 #define FG_STATE (0x60)         // 01100000
 #define FY_STATE (0x40)         // 01000000
 
+// Readability Constants
 #define TRUE 1
 #define FALSE 0
 
@@ -88,7 +92,7 @@ volatile unsigned char lto_flag = FALSE;
 void wstr(char* s);
 void wcrlf(void);
 
-
+// local function forward declarations
 void frame_sync_isr(void) __attribute__((interrupt));
 void read_car_in(void);
 void update_sto(void);
@@ -96,13 +100,10 @@ void update_lto(void);
 void update_state(void);
 void set_light_out(void);
 
-char isr_str[100] = "ISR Happened!\n\4";
-char here_str[100] = "I'm here!!\n\4";
-char x_str[100] = "x\4";
 
 unsigned char _start() {
-    // enable interrupts
     __asm__("sei");
+    
     jump_table_toc2_opcode = OPCODE_JMP_EXTENDED;
     jump_table_toc2_isr = (short int *) frame_sync_isr;
     tmsk1 |= OC2_MASK;
@@ -110,64 +111,45 @@ unsigned char _start() {
     toc2 = tcnt + FRAME_LENGTH;
 
     __asm__("cli");
-    // set_light_out();
+    set_light_out();
 
     while (TRUE) {
         is_wait = TRUE;
-        wstr((char *) here_str);
-        // while (is_wait == TRUE) {};
+      
+        while (is_wait == TRUE) {};
 
-        while (TRUE) {
-            wstr((char *) x_str);
-        }
-        // read_car_in();
-        // update_sto();
-        // update_lto();
-        // update_state();
-        // set_light_out();
+        read_car_in();
+        update_sto();
+        update_lto();
+        update_state();
+        set_light_out();
     }
 
     return 0;
 }
 
 void frame_sync_isr(void) {
-    wstr((char *) isr_str);
     tflg1 |= CLEAR_OC2_MASK;
-    // toc2 += FRAME_LENGTH;
-    toc2 = toc2 + FRAME_LENGTH;
+    toc2 += FRAME_LENGTH;
     is_wait = FALSE;
 }
 
 void read_car_in(void) {
-    // is_car = (port_a & CAR_IN_MASK) ? TRUE : FALSE;
-    if (port_a & CAR_IN_MASK)
-        is_car = TRUE;
-    else
-        is_car = FALSE;
+    is_car = (port_a & CAR_IN_MASK) ? TRUE : FALSE;
 }
 
 void update_sto(void) {
     if (sto_count < STO_MAX) {
         sto_count++;
     }
-    // sto_flag = (sto_count == STO_MAX) ? TRUE : FALSE;
-    if (sto_count == STO_MAX) {
-        sto_flag = TRUE;
-    } else {
-        sto_flag = FALSE;
-    }
+    sto_flag = (sto_count == STO_MAX) ? TRUE : FALSE;
 }
 
 void update_lto(void) {
     if (lto_count < LTO_MAX) {
         lto_count++;
     }
-    // lto_flag = (lto_count == LTO_MAX) ? TRUE : FALSE;
-    if (lto_count == LTO_MAX) {
-        lto_flag = TRUE;
-    } else {
-        lto_flag = FALSE;
-    }
+    lto_flag = (lto_count == LTO_MAX) ? TRUE : FALSE;
 }
 
 void update_state(void) {

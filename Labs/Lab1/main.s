@@ -2,7 +2,7 @@
 ;;; Start MC68HC11 gcc assembly output
 ;;; gcc compiler 3.3.6-m68hc1x-20060122
 ;;; Command:	/usr/lib/gcc-lib/m68hc11/3.3.6-m68hc1x-20060122/cc1 -quiet -D__GNUC__=3 -D__GNUC_MINOR__=3 -D__GNUC_PATCHLEVEL__=6 -Dmc68hc1x -D__mc68hc1x__ -D__mc68hc1x -D__HAVE_SHORT_INT__ -D__INT__=16 -Dmc6811 -DMC6811 -Dmc68hc11 main.c -quiet -dumpbase main.c -mshort -auxbase main -Os -fomit-frame-pointer -o main.s
-;;; Compiled:	Fri Jan 24 15:18:19 2020
+;;; Compiled:	Wed Jan 29 12:17:40 2020
 ;;; (META)compiled by GNU C version 6.3.0 20170221.
 ;;;-----------------------------------------
 	.file	"main.c"
@@ -55,14 +55,54 @@ isr_str:
 here_str:
 	.string	"I'm here!!\n\004"
 	.zero	87
-	.globl	x_str
-	.type	x_str, @object
-	.size	x_str, 100
-x_str:
-	.string	"x\004"
+	.globl	a_str
+	.type	a_str, @object
+	.size	a_str, 100
+a_str:
+	.string	"a\004"
+	.zero	97
+	.globl	b_str
+	.type	b_str, @object
+	.size	b_str, 100
+b_str:
+	.string	"b\004"
+	.zero	97
+	.globl	c_str
+	.type	c_str, @object
+	.size	c_str, 100
+c_str:
+	.string	"c\004"
+	.zero	97
+	.globl	d_str
+	.type	d_str, @object
+	.size	d_str, 100
+d_str:
+	.string	"d\004"
+	.zero	97
+	.globl	e_str
+	.type	e_str, @object
+	.size	e_str, 100
+e_str:
+	.string	"e\004"
+	.zero	97
+	.globl	f_str
+	.type	f_str, @object
+	.size	f_str, 100
+f_str:
+	.string	"f\004"
+	.zero	97
+	.globl	g_str
+	.type	g_str, @object
+	.size	g_str, 100
+g_str:
+	.string	"g\004"
 	.zero	97
 	; extern	frame_sync_isr
-	; extern	wstr
+	; extern	set_light_out
+	; extern	read_car_in
+	; extern	update_sto
+	; extern	update_lto
+	; extern	update_state
 	.sect	.text
 	.globl	_start
 	.type	_start,@function
@@ -72,10 +112,10 @@ _start:
 	sei
 ; End of inline assembler code
 #NO_APP
-	ldx	#4316
+	ldx	#220
 	ldab	#126
 	stab	0,x
-	ldx	#4317
+	ldx	#221
 	ldd	#frame_sync_isr
 	std	0,x
 	ldx	#4130
@@ -84,7 +124,7 @@ _start:
 	bset	0,x, #64
 	ldx	#4110
 	ldd	0,x
-	addd	#3392
+	addd	#20000
 	ldx	#4120
 	std	0,x
 ; Begin inline assembler code
@@ -92,13 +132,19 @@ _start:
 	cli
 ; End of inline assembler code
 #NO_APP
+.L9:
+	bsr	set_light_out
 	ldab	#1
 	stab	is_wait
-	ldd	#here_str
-.L10:
-	bsr	wstr
-	ldd	#x_str
-	bra	.L10
+.L5:
+	ldab	is_wait
+	cmpb	#1
+	beq	.L5
+	bsr	read_car_in
+	bsr	update_sto
+	bsr	update_lto
+	bsr	update_state
+	bra	.L9
 	.size	_start, .-_start
 	.globl	frame_sync_isr
 	.type	frame_sync_isr,@function
@@ -112,6 +158,10 @@ frame_sync_isr:
 	pshx
 	ldx	#4131
 	bset	0,x, #64
+	ldx	#4120
+	ldd	0,x
+	addd	#20000
+	std	0,x
 	clr	is_wait
 	pulx
 	stx	*_.xy
@@ -126,53 +176,60 @@ frame_sync_isr:
 read_car_in:
 	ldx	#4096
 	ldab	0,x
+	lsrd
 	anda	#0
-	andb	#2
-	std	*_.tmp
-	beq	.L13
-	ldab	#1
-.L13:
+	andb	#1
 	stab	is_car
 	rts
 	.size	read_car_in, .-read_car_in
 	.globl	update_sto
 	.type	update_sto,@function
 update_sto:
+	des
 	ldd	sto_count
-	cpd	#29
-	bhi	.L16
+	cpd	#299
+	bhi	.L13
 	ldx	sto_count
 	inx
 	stx	sto_count
-.L16:
+.L13:
+	tsx
+	clr	0,x
 	ldd	sto_count
-	cpd	#30
-	bne	.L17
+	cpd	#300
+	bne	.L14
 	ldab	#1
+	stab	0,x
+.L14:
+	tsx
+	ldab	0,x
 	stab	sto_flag
-	rts
-.L17:
-	clr	sto_flag
+	ins
 	rts
 	.size	update_sto, .-update_sto
 	.globl	update_lto
 	.type	update_lto,@function
 update_lto:
+	des
 	ldd	lto_count
-	cpd	#99
-	bhi	.L20
+	cpd	#999
+	bhi	.L16
 	ldx	lto_count
 	inx
 	stx	lto_count
-.L20:
+.L16:
+	tsx
+	clr	0,x
 	ldd	lto_count
-	cpd	#100
-	bne	.L21
+	cpd	#1000
+	bne	.L17
 	ldab	#1
+	stab	0,x
+.L17:
+	tsx
+	ldab	0,x
 	stab	lto_flag
-	rts
-.L21:
-	clr	lto_flag
+	ins
 	rts
 	.size	update_lto, .-update_lto
 	.globl	update_state
@@ -185,71 +242,71 @@ update_state:
 	clra
 	xgdx
 	cpx	#64
-	beq	.L35
-	bgt	.L39
+	beq	.L30
+	bgt	.L34
 	cpx	#0
-	beq	.L25
+	beq	.L20
 	cpx	#32
-	beq	.L28
+	beq	.L23
 	rts
-.L39:
+.L34:
 	cpx	#96
-	beq	.L31
+	beq	.L26
 	rts
-.L25:
+.L20:
 	ldab	is_car
 	cmpb	#1
-	bne	.L26
+	bne	.L21
 	ldab	lto_flag
 	cmpb	#1
-	bne	.L26
+	bne	.L21
 	ldab	#32
 	stab	state
 	stx	sto_count
 	stx	lto_count
 	rts
-.L26:
+.L21:
 	clr	state
 	rts
-.L28:
+.L23:
 	ldab	sto_flag
 	cmpb	#1
-	bne	.L29
+	bne	.L24
 	ldab	#96
-	bra	.L40
-.L29:
+	bra	.L35
+.L24:
 	ldab	#32
 	stab	state
 	rts
-.L31:
+.L26:
 	ldab	is_car
-	bne	.L34
+	bne	.L29
 	ldab	sto_flag
 	cmpb	#1
-	beq	.L33
-.L34:
+	beq	.L28
+.L29:
 	ldab	lto_flag
 	cmpb	#1
-	bne	.L23
-.L33:
+	bne	.L18
+.L28:
 	ldab	#64
-.L40:
+.L35:
 	stab	state
 	clr	sto_count+1
 	clr	sto_count
 	clr	lto_count+1
 	clr	lto_count
 	rts
-.L35:
+.L30:
 	ldab	sto_flag
 	cmpb	#1
-	bne	.L23
+	bne	.L18
 	clr	state
 	clr	sto_count+1
 	clr	sto_count
 	clr	lto_count+1
 	clr	lto_count
-.L23:
+.L18:
 	rts
 	.size	update_state, .-update_state
 	.globl	set_light_out
