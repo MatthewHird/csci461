@@ -1,8 +1,10 @@
 /*======================================================================
   Behaviour: 
     Traffic Light Controller Cycle Executive Program follows the
-        guidelines specified in the document for CSCI355 lab9 (PDF): 
+        guidelines specified in the document for CSCI461 lab1 (HTML) and
+         the guidelines specified in the document for CSCI355 lab9 (PDF): 
 
+    http://csciun1.mala.bc.ca:8080/~pwalsh/teaching/461/Labs/lab1
     http://csciun1.mala.bc.ca:8080/~pwalsh/teaching/355/newLabs/Lab9.pdf
 
     +=================================+
@@ -76,9 +78,11 @@
 // 1 frame per cycle -> 100 cycles per second
 #define CYCLE_LENGTH = 1 * FRAME_LENGTH; 
 
-#define STO_MAX 300      // 300 cycles = 3 seconds 
-#define LTO_MAX 1000     // 1000 cycles = 10 seconds
+#define LIGHT_MAX 50     // 50 cycles = 0.5 seconds
+#define STO_MAX 1000      // 1000 cycles = 10 seconds 
+#define LTO_MAX 3000     // 3000 cycles = 30 seconds
 
+volatile unsigned short light_count = 0;
 volatile unsigned short sto_count = 0;
 volatile unsigned short lto_count = 0;
 
@@ -122,7 +126,10 @@ unsigned char _start() {
         update_sto();
         update_lto();
         update_state();
-        set_light_out();
+        if (++light_count > LIGHT_MAX) {
+            set_light_out();
+            light_count = 0;
+        }
     }
 
     return 0;
