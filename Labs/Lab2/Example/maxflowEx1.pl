@@ -17,18 +17,27 @@ my $g = new Graph;
 $g->add_vertex("source");
 $g->add_vertex("sink");
 
-$g->add_vertex("F1"); $g->add_vertex("F2"); 
-$g->add_vertex("F3"); $g->add_vertex("F4");
-$g->add_vertex("F5"); $g->add_vertex("F6"); 
-$g->add_vertex("F7"); $g->add_vertex("F8");
-$g->add_vertex("F9"); $g->add_vertex("F10");
+$g->add_vertex("F1"); 
+$g->add_vertex("F2"); 
+$g->add_vertex("F3"); 
+$g->add_vertex("F4");
+$g->add_vertex("F5"); 
+$g->add_vertex("F6"); 
+$g->add_vertex("F7"); 
+$g->add_vertex("F8");
+$g->add_vertex("F9"); 
+$g->add_vertex("F10");
 
-$g->add_vertex("J1-1"); $g->add_vertex("J1-2");
-$g->add_vertex("J1-3"); $g->add_vertex("J1-4");
+$g->add_vertex("J1-1"); 
+$g->add_vertex("J1-2");
+$g->add_vertex("J1-3"); 
+$g->add_vertex("J1-4");
 $g->add_vertex("J1-5"); 
 
-$g->add_vertex("J2-1"); $g->add_vertex("J2-2");
-$g->add_vertex("J2-3"); $g->add_vertex("J2-4");
+$g->add_vertex("J2-1"); 
+$g->add_vertex("J2-2");
+$g->add_vertex("J2-3"); 
+$g->add_vertex("J2-4");
 
 $g->add_vertex("J3-1");
 
