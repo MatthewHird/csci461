@@ -1,12 +1,17 @@
 import attr
-import typing
+
+from src.model.task import Task
 
 
-@attr.s(auto_attribs=True)
+@attr.s
 class Job:
-    task_id: int = None
-    id: int = None
-    name: str = None
-    release_time: int = None
-    deadline: int = None
-    wcet: int = None
+    task: Task = attr.ib()
+    id: int = attr.ib()
+    release_time: int = attr.ib()
+    deadline: int = attr.ib()
+    wcet: int = attr.ib()
+    name: str = attr.ib()
+
+    @name.default
+    def _name_default(self) -> str:
+        return f"J{self.task.id}-{self.id}"

@@ -1,12 +1,15 @@
 import attr
-import typing
 
 
-@attr.s(auto_attribs=True)
+@attr.s
 class Task:
-    id: int = None
-    name: str = None
-    phase: int = None
-    period: int = None
-    wcet: int = None
-    deadline: int = None
+    id: int = attr.ib()
+    phase: int = attr.ib()
+    period: int = attr.ib()
+    wcet: int = attr.ib()
+    deadline: int = attr.ib()
+    name: str = attr.ib()
+
+    @name.default
+    def _name_default(self):
+        return f"T{self.id}"
