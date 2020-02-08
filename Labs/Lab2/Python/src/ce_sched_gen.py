@@ -1,40 +1,66 @@
 import logging
 from collections import defaultdict
+from itertools import combinations
 
 import networkx as nx
 import numpy as np
 
 from typing import Dict, Tuple, Sequence, List
+
+from src.model.base_frame import BaseFrame
 from src.model.task import Task
 from src.model.frame import Frame
 from src.model.job import Job
+from src.model.static_data import StaticData
+from src.model.schedule_layout import ScheduleLayout
+from src.schedule_maker import ScheduleMaker
+from src.model.schedule import Schedule
 
 
 class CeSchedGen:
     def __init__(self, tasks: List[Task]):
-        self.tasks = tasks
-        self.periods = [i.period for i in self.tasks]
-        self.deadlines = [i.deadline for i in self.tasks]
-        self.major_cycle = np.ufunc.reduce(np.lcm, self.periods)
-        self.frame_candidates = self.__initialize_frame_candidates()
-        self.job_set = self.__initialize_job_set()
+        periods = [i.period for i in tasks]
+        deadlines = [i.deadline for i in tasks]
+        major_cycle = np.ufunc.reduce(np.lcm, periods)
+        total_wcet, jobs = self.__initialize_jobs(tasks, major_cycle)
+        source_edges = self.__initialize_source_edges(jobs)
+        self.frame_candidates: List[int] = self.__initialize_frame_candidates(tasks=tasks, periods=periods, major_cycle=major_cycle)
+        self.static_data: StaticData = StaticData(
+            tasks=tasks, periods=periods, deadlines=deadlines, total_wcet=total_wcet,
+            major_cycle=major_cycle, jobs=jobs, source_edges=source_edges
+        )
+
+    def test(self):
+        frame_size = max(self.frame_candidates)
+        schedule_layout = ScheduleLayout(self.static_data, frame_size)
+        schedule_maker = ScheduleMaker.from_schedule_layout(schedule_layout)
+        test_schedule: Schedule = schedule_maker.create_schedule_test()
+        x = 1
 
     def run(self):
-        gcd = np.ufunc.reduce(np.gcd, self.periods)
-        min_deadline = min(self.deadlines)
-        min_period = min(self.periods)
+        for frame_size in self.frame_candidates:
+            schedule_layout = ScheduleLayout(self.static_data, frame_size)
+            schedule_maker = ScheduleMaker.from_schedule_layout(schedule_layout)
+            test_schedule: Schedule = schedule_maker.create_schedule_test()
+        
+    def run_2(self):
+        gcd = np.ufunc.reduce(np.gcd, self.static_data.periods)
+        min_deadline = min(self.static_data.deadlines)
+        min_period = min(self.static_data.periods)
 
         frame_size = max(self.frame_candidates)
-        frame_count = self.major_cycle // frame_size
+        frame_count = self.static_data.major_cycle // frame_size
 
         frames = [
-            Frame(id=i, start_time=i * frame_size, end_time=(i + 1) * frame_size, capacity=frame_size)
+            BaseFrame(id=i, start_time=i * frame_size, end_time=(i + 1) * frame_size, capacity=frame_size)
             for i in range(frame_count)
         ]
 
+        sink_edges = [(f.name, 'sink', {'capacity': f.capacity}) for f in frames]
+
         edges = [(f.name, 'sink', {'capacity': f.capacity}) for f in frames]
 
-        jobs = self.job_set
+        jobs = self.static_data.jobs
         for j in jobs:
             edges.append(('source', j.name, {'capacity': j.wcet}))
             for f in frames:
@@ -77,19 +103,19 @@ class CeSchedGen:
         task_row = defaultdict(list)
         for f in frames:
             f_total_time = 0
-            for t in self.tasks:
+            for t in self.static_data.tasks:
                 task_row_frame = f"{'':<{f_total_time}}" if f_total_time else ""
-                if frame_task_contents.get(f.name) and frame_task_contents.get(f.name).get(t.id):
-                    j_id = frame_task_contents.get(f.name).get(t.id)[0]
-                    t_time_units = frame_task_contents.get(f.name).get(t.id)[1]
+                if frame_task_contents.get(f.name) and frame_task_contents.get(f.name).get(t.index):
+                    j_id = frame_task_contents.get(f.name).get(t.index)[0]
+                    t_time_units = frame_task_contents.get(f.name).get(t.index)[1]
                     f_total_time += t_time_units
                     task_row_frame += f"{'':{str(j_id)[-1]}<{t_time_units}}"
-                task_row[t.id].append(f"{task_row_frame:{f.capacity}}")
+                task_row[t.index].append(f"{task_row_frame:{f.capacity}}")
             time_row.append(f"{'+':->{f.capacity}}")
 
         file.write(f"{'':=<10}+{''.join(time_row)}\n")
-        for t in self.tasks:
-            file.write(f"{t.name:10}|{''.join(task_row[t.id])}\n")
+        for t in self.static_data.tasks:
+            file.write(f"{t.name:10}|{''.join(task_row[t.index])}\n")
         file.write(f"{'':=<10}+{''.join(time_row)}\n")
 
         file.close()
@@ -99,36 +125,44 @@ class CeSchedGen:
     def run_interactive(self):
         pass
 
-    def __initialize_job_set(self):
-        job_set = []
-        for t in self.tasks:
-            for j in range(self.major_cycle // t.period):
-                job_set.append(Job(
+    @staticmethod
+    def __initialize_jobs(tasks: List[Task], major_cycle: int) -> Tuple[int, Dict[str, Job]]:
+        jobs = {}
+        total_wcet = 0
+        for t in tasks:
+            total_wcet += (t.wcet * major_cycle // t.period)
+            for j in range(major_cycle // t.period):
+                jobs[f"J{t.index}-{j + 1}"] = Job(
                     task=t,
-                    id=j + 1,
+                    index=j + 1,
                     release_time=j * t.period,
                     deadline=(j * t.period) + t.deadline,
                     wcet=t.wcet
-                ))
-        return job_set
+                )
+        return total_wcet, jobs
 
-    def __initialize_frame_candidates(self):
-        min_period = min(self.periods)
-        initial_frame_candidates = [i for i in self.__factors(self.major_cycle) if i <= min_period]
+    def __initialize_frame_candidates(self, tasks: List[Task], periods: List[int], major_cycle: int) -> List[int]:
+        min_period = min(periods)
+        initial_frame_candidates = [i for i in self.__factors(major_cycle) if i <= min_period]
 
         frame_candidates = []
         for f in initial_frame_candidates:
             valid = True
-            for task in self.tasks:
+            for task in tasks:
                 if 2 * f - np.gcd(task.period, f) > task.deadline:
                     valid = False
                     break
             if valid:
                 frame_candidates.append(f)
+        frame_candidates.sort(reverse=True)
         return frame_candidates
 
     @staticmethod
-    def __get_frame_job_contents_from_flow_dict(flow_dict: dict, jobs: List[Job]):
+    def __initialize_source_edges(jobs: Dict[str, Job]) -> List[Tuple[str, str, dict]]:
+        return [('source', j.name, {'capacity': j.wcet}) for j in jobs.values()]
+
+    @staticmethod
+    def __get_frame_job_contents_from_flow_dict(flow_dict: dict, jobs: List[Job]) -> dict:
         flipped = defaultdict(dict)
         for j in jobs:
             for frame, capacity in flow_dict[j.name].items():
@@ -137,12 +171,12 @@ class CeSchedGen:
         return flipped
 
     @staticmethod
-    def __get_frame_task_contents_from_flow_dict(flow_dict: dict, jobs: List[Job]):
+    def __get_frame_task_contents_from_flow_dict(flow_dict: dict, jobs: List[Job]) -> dict:
         flipped = defaultdict(dict)
         for j in jobs:
             for frame, capacity in flow_dict[j.name].items():
                 if capacity > 0:
-                    flipped[frame][j.task.id] = (j.id, capacity)
+                    flipped[frame][j.task.index] = (j.index, capacity)
         return flipped
 
     @staticmethod
@@ -159,6 +193,8 @@ class CeSchedGen:
 
 
 if __name__ == '__main__':
-    app = CeSchedGen(tasks=[Task(1, 0, 4, 1, 4), Task(2, 0, 5, 2, 5), Task(3, 0, 20, 5, 20)])
+    app = CeSchedGen(tasks=[Task(1, 0, 4, 1, 4), Task(2, 0, 5, 2, 5)])
+    # app = CeSchedGen(tasks=[Task(1, 0, 4, 1, 4), Task(2, 0, 5, 2, 5), Task(3, 0, 20, 2, 20)])
+    # app = CeSchedGen(tasks=[Task(1, 0, 4, 1, 4), Task(2, 0, 5, 2, 5), Task(3, 0, 20, 5, 20)])
     # app = CeSchedGen(tasks=[Task(1, 0, 14, 1, 14), Task(2, 0, 20, 2, 20), Task(3, 0, 22, 3, 22)])
-    app.run()
+    app.test()

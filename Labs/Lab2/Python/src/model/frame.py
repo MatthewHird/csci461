@@ -1,18 +1,20 @@
 import attr
 from typing import List
 
+from src.model.base_frame import BaseFrame
 from src.model.job_fragment import JobFragment
 
 
 @attr.s
 class Frame:
-    id: int = attr.ib()
-    start_time: int = attr.ib()
-    end_time: int = attr.ib()
-    capacity: int = attr.ib()
-    name: str = attr.ib()
+    base_frame: BaseFrame = attr.ib()
     job_fragments: List[JobFragment] = attr.ib(factory=list)
 
-    @name.default
-    def _name_default(self):
-        return f"F{self.id}"
+    def remaining_capacity(self) -> int:
+        used_capacity = 0
+        for jf in self.job_fragments:
+            used_capacity += jf.time_units
+        return self.base_frame.capacity - used_capacity
+
+    def is_full(self) -> bool:
+        return self.remaining_capacity() == 0

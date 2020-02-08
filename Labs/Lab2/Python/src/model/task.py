@@ -3,7 +3,7 @@ import attr
 
 @attr.s
 class Task:
-    id: int = attr.ib()
+    index: int = attr.ib()
     phase: int = attr.ib()
     period: int = attr.ib()
     wcet: int = attr.ib()
@@ -12,4 +12,4 @@ class Task:
 
     @name.default
     def _name_default(self):
-        return f"T{self.id}"
+        return f"T{self.index}"
