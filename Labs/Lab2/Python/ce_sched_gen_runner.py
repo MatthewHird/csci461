@@ -15,42 +15,11 @@ class ExitCode(Enum):
 
 
 def __main():
-    ass_file_string = None
-    mac_file_string = None
 
     log_level, in_file_path, out_file_path, is_comments, is_display = __get_parameters()
     logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=log_level)
-    ass_mac_converter = None  # create program
 
-    try:
-        ass_file_string = __load_file(in_file_path)
-    except Exception as e:
-        logging.exception(e)
-        logging.info("Failed to load file: {}. Program aborted...".format(in_file_path))
-        return ExitCode.READ_FILE_ERROR
 
-    try:
-        # run program
-        mac_file_string = ass_mac_converter.run(ass_file_string, is_comments)
-    except Error as e:
-        logging.info(e.message)
-        logging.info("A fatal error has occurred. Program aborted...")
-        return ExitCode.GENERAL_APP_ERROR
-    except Exception as e:
-        logging.exception(e)
-        logging.info("An unexpected error has occurred. Program aborted...")
-        return ExitCode.UNEXPECTED_APP_EXCEPTION
-
-    try:
-        if out_file_path:
-            __write_file(out_file_path, mac_file_string)
-    except Exception as e:
-        logging.exception(e)
-        logging.info("Failed to write to file: {}. Program aborted...".format(out_file_path))
-        return ExitCode.WRITE_FILE_ERROR
-
-    if is_display:
-        print(mac_file_string)
 
     return ExitCode.SUCCESS
 

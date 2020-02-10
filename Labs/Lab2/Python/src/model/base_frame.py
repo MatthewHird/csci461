@@ -21,9 +21,11 @@ class BaseFrame:
             end = end_time
             cap = capacity
         elif end_time is not None:
+            end = end_time
             cap = end_time - start_time
         elif capacity is not None:
-            end = start_time + cap
+            end = start_time + capacity
+            cap = capacity
         else:
             end = start_time
             cap = 0

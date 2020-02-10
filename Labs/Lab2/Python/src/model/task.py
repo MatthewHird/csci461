@@ -4,7 +4,6 @@ import attr
 @attr.s
 class Task:
     index: int = attr.ib()
-    phase: int = attr.ib()
     period: int = attr.ib()
     wcet: int = attr.ib()
     deadline: int = attr.ib()

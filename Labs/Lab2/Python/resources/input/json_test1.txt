@@ -1,0 +1,44 @@
+{
+    "output": {
+        "schedule_table": {
+            "print_table": true,
+            "space_frames": true,
+            "table_out_file_path": "../resources/output/test1.txt"
+        },
+        "schedule_timeline": {
+            "print_timeline": false,
+            "timeline_out_file_path": null
+        },
+        "schedule_json": {
+            "print_json": false,
+            "json_out_file_path": null
+        }
+    },
+    "iteration_counter": {
+        "counter_max": null,
+        "print_counter_every": 1000
+    },
+    "schedule_parameters": {
+        "tasks": [
+            [1, 4, 1, 4],
+            [2, 5, 2, 5],
+            [3, 20, 4, 20],
+        ],
+        "condition_sets": [
+            {
+               "frame_size": 2,
+               "task_max_parts": [
+                   ["T2", 1],
+               ],
+               "job_max_parts": [
+                   ["J3-1", 2],
+               ],
+               "job_frame_usage_edges": [
+                   ["J3-1", "F8", 2],
+                   ["J2-4", "F10", 2],
+                   ["J2-1", "F2", 2],
+               ]
+            },
+        ]
+    }
+}

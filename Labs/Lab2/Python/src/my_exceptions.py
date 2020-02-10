@@ -3,6 +3,6 @@ class Error(Exception):
         self.message = message
 
 
-class MyError(Error):
+class CounterMaxError(Error):
     def __init__(self, info):
-        self.message = f'MyError: "{info}" '
+        self.message = f'CounterMaxError: "{info}" '
