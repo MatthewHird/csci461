@@ -103,7 +103,7 @@ class CeSchedGen:
         found_valid_schedule = False
 
         # SettingsImporterExporter.export_settings_file(settings, "../resources/output/json_test1.txt")
-        settings = SettingsImporterExporter.import_settings_file("../resources/input/json_test2.txt")
+        # settings = SettingsImporterExporter.import_settings_file("../resources/input/json_test2.txt")
 
         frame_candidates = self.frame_candidates
         logging.info(f"Major cycle length: {self.static_data.major_cycle}..."

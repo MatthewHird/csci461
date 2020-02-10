@@ -3,7 +3,7 @@
         "schedule_table": {
             "print_table": true,
             "space_frames": true,
-            "table_out_file_path": "../resources/output/test1.txt"
+            "table_out_file_path": "/home/hirdm/Documents/csci461/Labs/Lab2/Python/resources/output/test1.txt"
         },
         "schedule_timeline": {
             "print_timeline": false,

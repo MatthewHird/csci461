@@ -14,7 +14,6 @@ class ScheduleExporter:
                           out_file_path: str = None,
                           space_frames: bool = False
                           ):
-        # file = open("../resources/output/test1.txt", "w")
         file = open(out_file_path, "w") if out_file_path else sys.stdout
         file.write(
             f"{'Job Name':10}{'Time':6}{'To Frame':10}{'% of Frame':12}{'Frame Completion':18}{'% of Job':10}{'Job Completion':16}\n"
