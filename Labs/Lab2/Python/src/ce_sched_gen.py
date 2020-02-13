@@ -168,7 +168,7 @@ class CeSchedGen:
                 logging.info(f"No valid schedules exist for {cs_name}...")
                 continue
 
-            combination_count, job_combinations = schedule_maker.get_combinations(condition_set.job_frame_usage_edges)
+            combination_count, job_combinations = schedule_maker.get_combinations(condition_set.job_frame_usage_edges, max_parts_dict)
 
             print(
                 f"The worst case number of combinations of job-frame edges is "

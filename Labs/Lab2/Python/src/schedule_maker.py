@@ -143,7 +143,7 @@ class ScheduleMaker:
                     break
         return schedule
 
-    def get_combinations(self, job_frame_usage_edges: List[Tuple[str, str, int]]) -> Tuple[int, Dict[str, List[tuple]]]:
+    def get_combinations(self, job_frame_usage_edges: List[Tuple[str, str, int]], max_parts_dict: Dict[str, int]) -> Tuple[int, Dict[str, List[tuple]]]:
         all_job_frame_edges = defaultdict(list)
         job_combinations = defaultdict(list)
         combination_count = 1
@@ -164,7 +164,7 @@ class ScheduleMaker:
                 if j.release_time <= bf.start_time and j.deadline >= bf.end_time \
                         and job_usage[j.name] < j.wcet and frame_usage[bf.name] < bf.capacity:
                     all_job_frame_edges[j.name].append((j.name, bf.name))
-            for i in range(len(all_job_frame_edges[j.name])):
+            for i in range(max_parts_dict[j.name] if j.name in max_parts_dict else len(all_job_frame_edges[j.name])):
                 job_combos = list(combinations(all_job_frame_edges[j.name], i + 1))
                 len_job_combos += len(job_combos)
                 job_combinations[j.name].extend(job_combos)

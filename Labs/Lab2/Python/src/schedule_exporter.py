@@ -14,30 +14,39 @@ class ScheduleExporter:
                           out_file_path: str = None,
                           space_frames: bool = False
                           ):
-        file = open(out_file_path, "w") if out_file_path else sys.stdout
-        file.write(
-            f"{'Job Name':10}{'Time':6}{'To Frame':10}{'% of Frame':12}{'Frame Completion':18}{'% of Job':10}{'Job Completion':16}\n"
-            f"{'========':10}{'====':6}{'========':10}{'==========':12}{'================':18}{'========':10}{'==============':16}\n"
-        )
-
-        job_completion = defaultdict(int)
-        for f in schedule.frames.values():
-            f_total_time = 0
-            for jf in f.job_fragments:
-                f_total_time += jf.time_units
-                j_total_time = job_completion[jf.job.name] + jf.time_units
-                job_completion[jf.job.name] = j_total_time % jf.job.wcet
-                file.write(
-                    f"{jf.job.name:10}{jf.time_units:<6}{f.base_frame.name:10}"
-                    f"{'':2}{jf.time_units / f.base_frame.capacity * 100:5.1f}"
-                    f"{'':5}{f_total_time:6} of {f.base_frame.capacity:<6}{'':2}"
-                    f"{'':1}{jf.time_units / jf.job.wcet * 100:5.1f}{'':4}"
-                    f"{j_total_time:5} of {jf.job.wcet:<5}{'':2}\n"
-                )
-            if space_frames:
-                file.write("\n")
+        fp_list = []
+        file_path = None
         if out_file_path:
-            file.close()
+            file_path = open(out_file_path, "w")
+            fp_list.append(file_path)
+
+        if print_table:
+            fp_list.append(sys.stdout)
+
+        for file in fp_list:
+            file.write(
+                f"{'Job Name':10}{'Time':6}{'To Frame':10}{'% of Frame':12}{'Frame Completion':18}{'% of Job':10}{'Job Completion':16}\n"
+                f"{'========':10}{'====':6}{'========':10}{'==========':12}{'================':18}{'========':10}{'==============':16}\n"
+            )
+
+            job_completion = defaultdict(int)
+            for f in schedule.frames.values():
+                f_total_time = 0
+                for jf in f.job_fragments:
+                    f_total_time += jf.time_units
+                    j_total_time = job_completion[jf.job.name] + jf.time_units
+                    job_completion[jf.job.name] = j_total_time % jf.job.wcet
+                    file.write(
+                        f"{jf.job.name:10}{jf.time_units:<6}{f.base_frame.name:10}"
+                        f"{'':2}{jf.time_units / f.base_frame.capacity * 100:5.1f}"
+                        f"{'':5}{f_total_time:6} of {f.base_frame.capacity:<6}{'':2}"
+                        f"{'':1}{jf.time_units / jf.job.wcet * 100:5.1f}{'':4}"
+                        f"{j_total_time:5} of {jf.job.wcet:<5}{'':2}\n"
+                    )
+                if space_frames:
+                    file.write("\n")
+        if out_file_path:
+            file_path.close()
 
     @staticmethod
     def schedule_to_timeline(schedule: Schedule, print_timeline: bool = False, out_file_path: str = None):
