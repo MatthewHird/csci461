@@ -149,96 +149,116 @@ class SettingsImporterExporter:
 
         settings_template_verbose = """\
 //  Verbose Settings Template for CeSchedGen (Feb 2020)
+//      * Note: This is in a modified JSON format. It is identical to JSON except it allows for single line comments.
+//              Each comment must be on its own line (cannot be on a code line).
 {
     "output": {
-        //  print_table:            If 'true', print schedule table to STDOUT.
-        //  space_frames:           If 'true', an additional newline is added after every frame.
-        //  table_out_file_path:    The path of the file the schedule table should write to. 
-        //                              If 'null', the schedule table will not be written to a file.
+        //  print_table: bool           (default: true)     If 'true', print schedule table to STDOUT.
+        //  space_frames: bool          (default: false)    If 'true', an additional newline is added after every frame.
+        //  table_out_file_path: str    (default: null)     The path of the file the schedule table should write to. 
+        //                                                      If 'null', the table will not be written to a file.
         "schedule_table": {
             "print_table": true,
             "space_frames": false,
             "table_out_file_path": null
         },
-        //  print_timeline:         If 'true', print schedule timeline to STDOUT.
-        //  schedule_out_file_path: The path of the file the schedule timeline should write to. 
+        //  print_timeline:         NOT YET IMPLEMENTED
+        //                              If 'true', print schedule timeline to STDOUT.
+        //  schedule_out_file_path: NOT YET IMPLEMENTED
+        //                              The path of the file the schedule timeline should write to. 
         //                              If 'null', the schedule timeline will not be written to a file.
         "schedule_timeline": {
             "print_timeline": false,
             "schedule_out_file_path": null
         },
-        //  print_json:             If 'true', print schedule in JSON format to STDOUT.
-        //  json_out_file_path:     The path of the file the schedule in JSON format should write to. 
+        //  print_json:             NOT YET IMPLEMENTED
+        //                              If 'true', print schedule in JSON format to STDOUT.
+        //  json_out_file_path:     NOT YET IMPLEMENTED
+        //                              The path of the file the schedule in JSON format should write to. 
         //                              If 'null', the schedule in JSON format will not be written to a file.
         "schedule_json": {
             "print_json": false,
             "json_out_file_path": null
         }
     },
-    //  counter_max:            The number of schedule combinations the program should attempt before 
-    //                              giving up and exiting the program. If 'null', the program will run
-    //                              until completion regardless of the number of combinations tried.
+    //  counter_max: int            (default: null)     The number of schedule combinations the program should attempt 
+    //                                                      before giving up and exiting the program. If 'null', the 
+    //                                                      program will run until completion regardless of the number
+    //                                                      of combinations tried.
     //
-    //  print_counter_every:    Every 'x' schedule combinations attempted, A message will be printed 
-    //                              to STDOUT containing the total number of schedule combinations 
-    //                              attempted so far, where 'x' is the value of print_counter_every. 
-    //                              If 'null', no combination counter messages will be printed.
+    //  print_counter_every: int    (default: 100)      Every 'print_counter_every' schedule combinations attempted, 
+    //                                                      a message will be printed to STDOUT containing the total 
+    //                                                      number of schedule combinations attempted so far. 
+    //                                                      If 'null', no combination counter messages will be printed.
     "iteration_counter": {
         "counter_max": null,
         "print_counter_every": 100
     },
     "schedule_parameters": {
-        //  tasks:  List of tasks in the form [index, period, wcet, relative_deadline]
-        //              'index' must be a unique integer value. It is used to identify the task.
-        //                  e.g. If 'index' = 7, the task will have the name 'T7', and its jobs 
-        //                  will have the names 'J7-1', 'J7-2', etc.
-        //              'period', 'wcet', and 'relative_deadline' are all integers representing 
-        //                  unitless time values (ticks).
+        //  tasks: []           List of <task> (Tasks) in the form [<index>, <period>, <wcet>, <relative_deadline>].
+        //      <task>: []          A Task in the form [<index>, <period>, <wcet>, <relative_deadline>].
+        //          <index>: int                Must be a unique integer value. It is used to identify the task.
+        //                                          e.g. If <index> = 7, the task will have the name "T7", and its jobs
+        //                                          will have the names "J7-1", "J7-2", etc.
+        //          <period>: int               The period of the task in a unitless time value (ticks).
+        //          <wcet>: int                 The worst case execution time of the task in a unitless time value.
+        //          <relative_deadline>: int    The relative deadline of the task in a unitless time value (ticks).
         "tasks": [
             // [1, 4, 1, 4],  
             // [2, 5, 2, 5],
             // [3, 20, 4, 20],
         ],
-        //  List of sets of conditions to give to a schedule in the form {frame_size, max_parts, job_frame_usage_edges}. 
-        //      The condition sets will be attempted in the order they are listed. If a valid schedule is found using 
-        //      a first condition set, that schedule will be returned and the program will exit. If no schedule is 
-        //      found after exhausting all combinations (or after reaching 'counter_max' combinations), the next 
-        //      condition set will be attempted. This process continues until all condition sets are tried or 
-        //      a valid schedule is found.
-        //      
-        //      frame_size:             The frame size to be used to create the schedule. If 'frame_size' is not
-        //                                  in the list of candidate frame sizes for a set of tasks, a warning will
-        //                                  be printed and the condition set will be skipped. If frame_size is 'null',
-        //                                  the largest candidate frame size will be used.
-        //
-        //      task_max_parts:         List of pairs in the form [task_name, max_parts].
-        //                                  'task_name' is the name of a task in the form 'T<task_index>' (e.g. 'T2').
-        //                                  'max_parts' is the maximum number of partitions each job of 'task_name' 
-        //                                      can be broken into. 
-        //
-        //      job_max_parts:          List of pairs in the form [job_name, max_partitions].
-        //                                  'job_name' is the name of a job (instance of a task) in the form
-        //                                      'J<task_index>-<job_index>' (e.g. 'J3-1' is the 1th instance of task 3).
-        //                                  'max_parts' is the maximum number of partitions a job can be broken into. 
-        //                                      This partition restriction overrides the value given by 
-        //                                      'task_max_parts' for 'job_name'.
-        //
-        //      job_frame_usage_edges:  List of triples in the form [job_name, frame_name, time_units]. 
-        //                                  Assigns 'time_units' time units of job 'job_name' to frame 'frame_name'.
-        //                                  Assigning jobs to frames reduces the number of possible scheduling 
-        //                                  combinations, drastically reducing the worst case runtime of the 
-        //                                  schedule generator, though poor assignments could make finding 
-        //                                  a valid schedule impossible. 
-        //
-        //                                  'job_name' is the name of a job (instance of a task) in the form
-        //                                      'J<task_index>-<job_index>' (e.g. 'J2-4' is the 4th instance of task 2).
-        //                                  'frame_name' is the name of a frame in the form 'F<frame_number>' 
-        //                                      (e.g. 'F8' is the 8th frame in the schedule). Each frame has 
-        //                                      a length/capacity of 'frame_size'. Frame 'F1' starts at time 0.
-        //                                          <frame_number> = (frame_start_time / <frame_size>) + 1 
-        //                                          <frame_start_time> = (<frame_number> - 1) * <frame_size>
-        //                                  'time_units' is the amount of time from job 'job_name' to assign to 
-        //                                      frame 'frame_name'. 
+        //  condition_sets: []  List of <condition_set> (dictionary of conditions) to give to a schedule. The condition
+        //                          sets will be attempted in the order they are listed. If a valid schedule is found 
+        //                          using a condition set, that schedule will be returned and the program will exit. If
+        //                          no schedule is found after exhausting all combinations (or after reaching 
+        //                          'counter_max' combinations), the next condition set will be attempted. This process
+        //                          continues until all condition sets are tried or a valid schedule is found.
+        //            
+        //      <condition_set>: {} A condition set in the form {"frame_size": <frame_size>, 
+        //                              "task_max_parts": <task_max_parts>, "job_max_parts": <job_max_parts>, 
+        //                              "job_frame_usage_edges": <job_frame_usage_edges>}.
+        //                          
+        //          frame_size: int     The frame size to be used to create the schedule. If 'frame_size' is not in the
+        //                                  list of candidate frame sizes for a set of tasks, a warning will be printed
+        //                                  and the condition set will be skipped. If 'frame_size' is 'null', the 
+        //                                  largest candidate frame size will be used.
+        //                  
+        //          task_max_parts: []  List of <tmp> (pair of a task name with the maximum number of partitions each 
+        //                                  job instance of that task can be broken into).
+        //              
+        //              <tmp>: []           Pair in the form [<task_name>, <max_parts>].
+        //                  <task_name>: str    The name of a task in the form "T<task_index>" (e.g. "T2").
+        //                  <max_parts>: int    The maximum number of parts each job of <task_name> can be broken into. 
+        //                  
+        //          job_max_parts: []   List of <jmp> (pair of a job name with the maximum number of partitions that
+        //                                  job can be broken into). 
+        //                  
+        //              <jmp>: []           Pair in the form [<job_name>, <max_partitions>].
+        //                  <job_name>: str     The name of a job in the form "J<task_index>-<job_index>"
+        //                                          (e.g. "J3-1" is the 1th instance of task 3).
+        //                  <max_parts>: int    The maximum number of partitions a job can be broken into. This 
+        //                                          partition restriction overrides the value given by 'task_max_parts'
+        //                                          for <task_name> whose task index is <task_index>.
+        //              
+        //          job_frame_usage_edges: []
+        //                              List of <jfue> (triple of a job name, the frame name of the frame to assign 
+        //                                  the job to, and the number of unitless time units of the job to assign to
+        //                                  the frame). Assigning jobs to frames reduces the number of possible
+        //                                  scheduling combinations, drastically reducing the worst case runtime of 
+        //                                  the schedule generator, though poor assignments could make finding a valid
+        //                                  schedule impossible.
+        //          
+        //              <jfue>: []          List of triples in the form [<job_name>, <frame_name>, <time_units>]. 
+        //                  <job_name>: str     The name of a job in the form "J<task_index>-<job_index>"
+        //                                          (e.g. "J2-4" is the 4th instance of task 2).
+        //                  <frame_name>: str   The name of a frame in the form "F<frame_number>" 
+        //                                          (e.g. "F8" is the 8th frame in the schedule). Each frame has 
+        //                                          a length/capacity of <frame_size>. Frame "F1" starts at time 0.
+        //                                              <frame_number> = (frame_start_time / <frame_size>) + 1 
+        //                                              <frame_start_time> = (<frame_number> - 1) * <frame_size>
+        //                  <time_units>: int   The number of unitless time units from job <job_name> to assign to 
+        //                                          frame <frame_name>. 
         "condition_sets": [
             //{
             //    "frame_size": 2,
@@ -260,6 +280,8 @@ class SettingsImporterExporter:
 
         settings_template_empty = """\
 //  Empty Settings Template for CeSchedGen (Feb 2020)
+//      * Note: This is in a modified JSON format. It is identical to JSON except it allows for single line comments.
+//              Each comment must be on its own line (cannot be on a code line).
 {
     "output": {
         "schedule_table": {

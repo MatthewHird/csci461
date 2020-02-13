@@ -1,7 +1,7 @@
 from argparse import ArgumentParser, HelpFormatter
 import logging
 from enum import Enum
-from typing import Dict, Tuple, Sequence, List
+from typing import List
 
 from src.ce_sched_gen import CeSchedGen
 from src.model.settings import Settings
@@ -27,7 +27,8 @@ class ExitCode(Enum):
 
 def __main():
 
-    log_level, verbose_settings_template, empty_settings_template, settings_file, tasks = __get_parameters()
+    log_level, verbose_settings_template, \
+        empty_settings_template, settings_file, tasks, generate_schedule_any = __get_parameters()
     logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=log_level)
 
     if verbose_settings_template:
@@ -39,7 +40,7 @@ def __main():
         if empty_settings_template == "STDOUT":
             SettingsImporterExporter.export_settings_template(True, None, False)
         else:
-            SettingsImporterExporter.export_settings_template(False, verbose_settings_template, False)
+            SettingsImporterExporter.export_settings_template(False, empty_settings_template, False)
     else:
         if settings_file:
             settings = SettingsImporterExporter.import_settings_file(settings_file)
@@ -53,8 +54,12 @@ def __main():
                 task_list.append(Task(task_ints[0], task_ints[1], task_ints[2], task_ints[3]))
             settings.schedule_parameters.tasks = task_list
 
-        ce_sched_gen = CeSchedGen(settings.schedule_parameters.tasks)
-        ce_sched_gen.run(settings)
+        ce_sched_gen = CeSchedGen(settings)
+
+        if generate_schedule_any:
+            ce_sched_gen.get_schedule_any()
+        else:
+            ce_sched_gen.run()
 
     return ExitCode.SUCCESS
 
@@ -83,25 +88,17 @@ def __get_parameters():
                         help='Manually enter task a task as 4 integers. '
                              '-t can be used multiple times to enter multiple tasks. '
                              'Tasks can also be set in the settings file.')
+    parser.add_argument('-a', '--generate_schedule_any', action='store_true',
+                        help='Generate a schedule with no conditions. Will always find a schedule, if one exists, '
+                             'in a single iteration, though the resulting schedule may frequently split jobs into '
+                             'many parts.'),
     parser.add_argument('-g', '--log_level', default='INFO', type=str,
                         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
                         help='Set the logging output level.', metavar="{INFO, WARNING, ERROR}"
                         )
     args = parser.parse_args()
-    return args.log_level, args.verbose_settings_template, args.empty_settings_template, args.settings_file, args.task
-
-
-def __load_file(file_path):
-    file = open(file_path, 'r')
-    file_string = file.read()
-    file.close()
-    return file_string
-
-
-def __write_file(file_path, contents):
-    file = open(file_path, 'w')
-    file.write(contents)
-    file.close()
+    return args.log_level, args.verbose_settings_template, args.empty_settings_template, \
+        args.settings_file, args.task, args.generate_schedule_any
 
 
 if __name__ == '__main__':

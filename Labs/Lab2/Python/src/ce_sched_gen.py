@@ -87,7 +87,9 @@ def _get_frame_task_contents_from_flow_dict(flow_dict: dict, jobs: List[Job]) ->
 
 
 class CeSchedGen:
-    def __init__(self, tasks: List[Task]):
+    def __init__(self, settings: Settings):
+        tasks: List[Task] = settings.schedule_parameters.tasks
+        self.settings: Settings = settings
         periods = [i.period for i in tasks]
         deadlines = [i.deadline for i in tasks]
         major_cycle = np.ufunc.reduce(np.lcm, periods)
@@ -99,11 +101,8 @@ class CeSchedGen:
             major_cycle=major_cycle, jobs=jobs, source_edges=source_edges
         )
 
-    def run(self, settings: Settings):
+    def run(self):
         found_valid_schedule = False
-
-        # SettingsImporterExporter.export_settings_file(settings, "../resources/output/json_test1.txt")
-        # settings = SettingsImporterExporter.import_settings_file("../resources/input/json_test2.txt")
 
         frame_candidates = self.frame_candidates
         logging.info(f"Major cycle length: {self.static_data.major_cycle}..."
@@ -111,10 +110,11 @@ class CeSchedGen:
 
         condition_set_count: int
 
-        if settings.schedule_parameters.condition_sets and len(settings.schedule_parameters.condition_sets) > 0:
-            condition_set_count = len(settings.schedule_parameters.condition_sets)
+        if self.settings.schedule_parameters.condition_sets \
+                and len(self.settings.schedule_parameters.condition_sets) > 0:
+            condition_set_count = len(self.settings.schedule_parameters.condition_sets)
             logging.info(f"{condition_set_count} condition sets found in settings...")
-            condition_sets = settings.schedule_parameters.condition_sets
+            condition_sets = self.settings.schedule_parameters.condition_sets
         else:
             condition_set_count = 1
             logging.info(f"No condition sets found in settings. Using default condition set...")
@@ -160,7 +160,6 @@ class CeSchedGen:
             logging.info(f"Generating schedules for frame size = {frame_size}...")
             schedule_layout = ScheduleLayout(self.static_data, frame_size)
             schedule_maker = ScheduleMaker.from_schedule_layout(schedule_layout)
-            schedule: Schedule
 
             initial_schedule = schedule_maker.create_schedule_any(
                 condition_set.job_frame_usage_edges if condition_set.job_frame_usage_edges else []
@@ -194,14 +193,15 @@ class CeSchedGen:
             else:  # response.startswith("y")
                 pass
 
+            schedule: Schedule
             try:
                 schedule = schedule_maker.recursively_generate_schedules(
                     list(job_combinations.values()),
                     [],
                     condition_set.job_frame_usage_edges,
                     max_parts_dict,
-                    settings.iteration_counter.counter_max,
-                    settings.iteration_counter.print_counter_every
+                    self.settings.iteration_counter.counter_max,
+                    self.settings.iteration_counter.print_counter_every
                 )
             except CounterMaxError as e:
                 logging.info(f"{e.message}...Continuing to next condition set...")
@@ -210,25 +210,27 @@ class CeSchedGen:
             if ScheduleValidator.is_schedule_valid(schedule=schedule, job_max_parts_dict=max_parts_dict):
                 found_valid_schedule = True
                 logging.info(f"Valid schedule found for condition set # {i + 1}...Outputting schedule...")
-                if settings.output.schedule_table.print_table or settings.output.schedule_table.table_out_file_path:
+                if self.settings.output.schedule_table.print_table \
+                        or self.settings.output.schedule_table.table_out_file_path:
                     ScheduleExporter.schedule_to_table(
                         schedule,
-                        settings.output.schedule_table.print_table,
-                        settings.output.schedule_table.table_out_file_path,
-                        settings.output.schedule_table.space_frames
+                        self.settings.output.schedule_table.print_table,
+                        self.settings.output.schedule_table.table_out_file_path,
+                        self.settings.output.schedule_table.space_frames
                     )
-                if (settings.output.schedule_timeline.print_timeline
-                        or settings.output.schedule_timeline.timeline_out_file_path):
+                if (self.settings.output.schedule_timeline.print_timeline
+                        or self.settings.output.schedule_timeline.timeline_out_file_path):
                     ScheduleExporter.schedule_to_timeline(
                         schedule,
-                        settings.output.schedule_timeline.print_timeline,
-                        settings.output.schedule_timeline.timeline_out_file_path
+                        self.settings.output.schedule_timeline.print_timeline,
+                        self.settings.output.schedule_timeline.timeline_out_file_path
                     )
-                if settings.output.schedule_json.print_json or settings.output.schedule_json.json_out_file_path:
+                if self.settings.output.schedule_json.print_json \
+                        or self.settings.output.schedule_json.json_out_file_path:
                     ScheduleExporter.schedule_to_json(
                         schedule,
-                        settings.output.schedule_json.print_json,
-                        settings.output.schedule_json.json_out_file_path
+                        self.settings.output.schedule_json.print_json,
+                        self.settings.output.schedule_json.json_out_file_path
                     )
                 break
             else:
@@ -240,19 +242,36 @@ class CeSchedGen:
             logging.info(f"No valid schedule found for any of {condition_set_count} condition sets...")
         logging.info(f"Exiting program...")
 
+    def get_schedule_any(self):
+        frame_size = max(self.frame_candidates)
+
+        logging.info(f"Generating schedules for frame size = {frame_size}...")
+        schedule_layout = ScheduleLayout(self.static_data, frame_size)
+        schedule_maker = ScheduleMaker.from_schedule_layout(schedule_layout)
+
+        schedule = schedule_maker.create_schedule_any([])
+        if schedule.is_valid():
+            logging.info(f"Valid schedule found for tasks...Outputting schedule...")
+            ScheduleExporter.schedule_to_table(
+                schedule,
+                self.settings.output.schedule_table.print_table,
+                self.settings.output.schedule_table.table_out_file_path,
+                self.settings.output.schedule_table.space_frames
+            )
+        else:
+            logging.info(f"No valid schedule exists for tasks {self.static_data.tasks}...")
 
 
-
-if __name__ == '__main__':
-    log_level = 'INFO'
-    logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=log_level)
-    # app = CeSchedGen(tasks=[Task(1, 4, 1, 4), Task(2, 5, 2, 5)])
-    # app = CeSchedGen(tasks=[Task(1, 4, 1, 4), Task(2, 5, 2, 5), Task(3, 20, 2, 20)])
-    # app = CeSchedGen(tasks=[Task(1, 4, 1, 4), Task(2, 5, 2, 5), Task(3, 20, 3, 20)])
-    app = CeSchedGen(tasks=[Task(1, 4, 1, 4), Task(2, 5, 2, 5), Task(3, 20, 4, 20)])
-    # app = CeSchedGen(tasks=[Task(1, 14, 1, 14), Task(2, 20, 2, 20), Task(3, 22, 3, 22)])
-    # app.run(Settings(print_counter_every=10, counter_max=2000, job_frame_usage_edges=[("J3-1", "F8", 2)]))
-    # app.run(Settings(print_counter_every=100, out_file_path='../resources/output/test3.txt', job_frame_usage_edges=[("J3-1", "F8", 2)]))
-    # app.run(Settings(print_counter_every=100, export_table=True, table_out_file_path='../resources/output/test3.txt', frame_size=2, job_frame_usage_edges=[("J3-1", "F8", 2), ("J1-1", "F1", 1), ("J2-1", "F2", 2), ("J1-4", "F7", 1)]))
-    # app.run(Settings(print_counter_every=100, export_table=True, table_space_frames=True, table_out_file_path='../resources/output/test3.txt', frame_size=2, job_frame_usage_edges=[("J3-1", "F8", 2)]))
-    app.run(None)
+# if __name__ == '__main__':
+#     log_level = 'INFO'
+#     logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=log_level)
+#     # app = CeSchedGen(tasks=[Task(1, 4, 1, 4), Task(2, 5, 2, 5)])
+#     # app = CeSchedGen(tasks=[Task(1, 4, 1, 4), Task(2, 5, 2, 5), Task(3, 20, 2, 20)])
+#     # app = CeSchedGen(tasks=[Task(1, 4, 1, 4), Task(2, 5, 2, 5), Task(3, 20, 3, 20)])
+#     app = CeSchedGen(tasks=[Task(1, 4, 1, 4), Task(2, 5, 2, 5), Task(3, 20, 4, 20)])
+#     # app = CeSchedGen(tasks=[Task(1, 14, 1, 14), Task(2, 20, 2, 20), Task(3, 22, 3, 22)])
+#     # app.run(Settings(print_counter_every=10, counter_max=2000, job_frame_usage_edges=[("J3-1", "F8", 2)]))
+#     # app.run(Settings(print_counter_every=100, out_file_path='../resources/output/test3.txt', job_frame_usage_edges=[("J3-1", "F8", 2)]))
+#     # app.run(Settings(print_counter_every=100, export_table=True, table_out_file_path='../resources/output/test3.txt', frame_size=2, job_frame_usage_edges=[("J3-1", "F8", 2), ("J1-1", "F1", 1), ("J2-1", "F2", 2), ("J1-4", "F7", 1)]))
+#     # app.run(Settings(print_counter_every=100, export_table=True, table_space_frames=True, table_out_file_path='../resources/output/test3.txt', frame_size=2, job_frame_usage_edges=[("J3-1", "F8", 2)]))
+#     app.run(None)

@@ -1,0 +1,230 @@
+======================
+CeSchedGen User Manual
+======================
+Program: CeSchedGen (ce_sched_gen_runner.py)
+Author: Matthew Hird
+Date:   Feb 12, 2020
+
+* Note: Document is hard wrapped at 120 character width. For best reading, increase window width to 120+ characters.
+
+0 - Requirements
+================
+Python 3.6.x or greater
+
+Python modules (listed in Requirements.txt):
+    networkx
+    numpy
+    attrs
+    jsoncomment
+
+
+1 - Terminal Program Execution
+==============================
+
+1.1 - Terminal Usage and Options
+================================
+
+    usage: ce_sched_gen_runner.py [-h] [-v [<out_filepath>]] [-e [<out_filepath>]] [-s <filepath>]
+                                  [-t <index> <period> <wcet> <deadline>] [-g {INFO, WARNING, ERROR}]
+
+    A tool to aid in the discovery of a feasible cycle-executive schedule for a set of periodic tasks.
+
+    optional arguments:
+      -h, --help                                        show this help message and exit
+      
+      -v, --verbose_settings_template [<out_filepath>]  Generate settings template file (JSON) with examples and
+                                                        descriptions for all fields. If <out_filepath> = STDOUT, the
+                                                        settings template will be printed to STDOUT.
+      
+      -e, --empty_settings_template [<out_filepath>]    Generate an 'empty' settings template file (JSON) with default
+                                                        values in all fields. If <out_filepath> = STDOUT, the settings
+                                                        template will be printed to STDOUT.
+      
+      -s, --settings_file <filepath>                    Path of settings file to run. The settings file can contain
+                                                        tasks and should be used to specify schedule parameters. A
+                                                        settings template file with examples can be generated with -v.
+      
+      -t, --task <index> <period> <wcet> <deadline>     Manually enter task a task as 4 integers. -t can be used
+                                                        multiple times to enter multiple tasks. Tasks can also be set 
+                                                        in the settings file.
+
+      -a, --generate_schedule_any                       Generate a schedule with no conditions. Will always find a
+                                                        schedule, if one exists, in a single iteration, though the
+                                                        resulting schedule may frequently split jobs into many parts.
+      
+      -g, --log_level {INFO, WARNING, ERROR}            Set the logging output level.
+
+
+2 - Settings Files
+==================
+
+    Though simple execution of the schedule generator can be entirely controlled from the terminal (by manually 
+entering tasks and using default settings), one has greater control over the program's operation by specifying 
+a settings file (with the -s option). From the terminal, a settings file template can be produced using 
+the -v or -e options. The settings files are in a modified JSON format. It is identical to JSON except it allows for
+single line comments, though each comment must be on its own line (cannot be on a code line). 
+
+    In a settings file, one can use the "output" section to specify how the generated schedule should be output, and 
+the "iteration_counter" section to control settings involving the number of schedule combinations. 
+The "scheduling_parameters" section is where one can list what tasks should be scheduled, along with 0 or more sets of
+conditions the generated schedule must comply with. 
+
+    If no condition sets are listed, the first valid schedule it found will be returned, unless no schedule is found 
+after exhausting all combinations. If one or more condition sets are listed, they will be attempted in the order they
+are listed. If a valid schedule is found using a condition set, that schedule will be returned and the program will 
+exit. If no schedule is found after exhausting all combinations (or after reaching 'counter_max' combinations), the 
+next condition set will be attempted. This process continues until all condition sets are tried or a valid schedule 
+is found.
+
+    The following sections show an empty setting template file, and list/explain all of the settings file fields.
+
+
+2.1 - Settings File Template
+============================
+
+//  Empty Settings Template for CeSchedGen (Feb 2020)
+//      * Note: This is in a modified JSON format. It is identical to JSON except it allows for single line comments.
+//              Each comment must be on its own line (cannot be on a code line).
+{
+    "output": {
+        "schedule_table": {
+            "print_table": true,
+            "space_frames": false,
+            "table_out_file_path": null
+        },
+    },
+    "iteration_counter": {
+        "counter_max": null,
+        "print_counter_every": 100
+    },
+    "schedule_parameters": {
+        "tasks": [],
+        "condition_sets": [
+            {
+                "frame_size": null,
+                "task_max_parts": [],
+                "job_max_parts": [],
+                "job_frame_usage_edges": []
+            },              
+        ]
+    }
+}
+
+
+2.2 - Settings File Fields
+==========================
+
+2.2.1 - Field Description Syntax
+================================
+
+    The following is a description of all of the settings file fields. Each field description listed below uses the 
+following syntax:
+
+<field_name>: <data_type>   [(default: <default_value>)]    <field_description>
+
+    If <field_name> is naked text, it is the literal name of the field. If it is in <>, it is a parameter that should be
+replaced by its value.
+
+    <data_type> is the JSON type of the field. {} is a dictionary in the form {"key1": value1, "key2: value2, ...}. 
+Keys must be double-quoted strings. [] is a list/tuple in the form [item1, item2, ...]. str is a string, meaning 
+the value must be double quoted. bool are booleans with naked lowercase values true and false. int is an integer, which 
+is a naked number value. 
+
+    <default_value> uses the type rules from above. Also all types can be assigned a null value, which must be naked 
+and lowercase.
+
+    <field_description> is a text description of the field, including values and behaviour.
+
+    The level a field is tabbed in (4 space tabs) shows the field is nested inside another field. A field if nested in 
+the first field above it that is exactly 1 tab level less that it. The fields that are not tabbed in are at the top 
+level, as in they are the dictionary keys of the main dictionary that wraps around all fields in the file. 
+
+
+2.2.2 - Settings File Field Descriptions
+========================================
+
+output: {}
+    schedule_table: {}
+        print_table: bool           (default: true)     If 'true', print schedule table to STDOUT.
+        space_frames: bool          (default: false)    If 'true', an additional newline is added after every frame.
+        table_out_file_path: str    (default: null)     The path of the file the schedule table should write to. 
+                                                            If 'null', the schedule table will not be written to a file.
+
+    schedule_timeline: {}
+        print_timeline:                                 NOT YET IMPLEMENTED
+        schedule_out_file_path:                         NOT YET IMPLEMENTED
+                                    
+    schedule_json: {}
+        print_json:                                     NOT YET IMPLEMENTED
+        json_out_file_path:                             NOT YET IMPLEMENTED
+
+iteration_counter: {}    
+    counter_max: int            (default: null)     The number of schedule combinations the program should attempt 
+                                                        before giving up and exiting the program. If 'null', the 
+                                                        program will run until completion regardless of the number 
+                                                        of combinations tried.
+
+    print_counter_every: int    (default: 100)      Every 'print_counter_every' schedule combinations attempted, 
+                                                        A message will be printed to STDOUT containing the total 
+                                                        number of schedule combinations attempted so far. If 'null', 
+                                                        no combination counter messages will be printed.
+
+schedule_parameters: {}
+    tasks: []               List of <task> (Task).
+        <task>: []               A Task in the form [<index>, <period>, <wcet>, <relative_deadline>].
+            <index>: int                Must be a unique integer value. It is used to identify the task.
+                                            e.g. If <index> = 7, the task will have the name "T7", and its jobs will 
+                                            have the names "J7-1", "J7-2", etc.
+            <period>: int               The period of the task in a unitless time value (ticks).
+            <wcet>: int                 The worst case execution time of the task in a unitless time value (ticks).
+            <relative_deadline>: int    The relative deadline of the task in a unitless time value (ticks).
+
+    condition_sets: []  List of <condition_set> (dictionary of conditions) to give to a schedule. The condition sets 
+                            will be attempted in the order they are listed. If a valid schedule is found using a 
+                            condition set, that schedule will be returned and the program will exit. If no schedule is
+                            found after exhausting all combinations (or after reaching 'counter_max' combinations), 
+                            the next condition set will be attempted. This process continues until all condition sets
+                            are tried or a valid schedule is found.
+
+        <condition_set>: {}  A condition set in the form {"frame_size": <frame_size>, "task_max_parts": <task_max_parts>,
+                                "job_max_parts": <job_max_parts>, "job_frame_usage_edges": <job_frame_usage_edges>}.
+        
+            frame_size: int     The frame size to be used to create the schedule. If 'frame_size' is not in the list 
+                                    of candidate frame sizes for a set of tasks, a warning will be printed and the
+                                    condition set will be skipped. If 'frame_size' is 'null', the largest candidate
+                                    frame size will be used.
+  
+            task_max_parts: []  List of <tmp> (pair of a task name with the maximum number of partitions each job 
+                                    instance of that task can be broken into).
+                
+                <tmp>: []           Pair in the form [<task_name>, <max_parts>].
+                    <task_name>: str    The name of a task in the form "T<task_index>" (e.g. "T2").
+                    <max_parts>: int    The maximum number of partitions each job of <task_name> can be broken into. 
+  
+            job_max_parts: []   List of <jmp> (pair of a job name with the maximum number of partitions that job can be
+                                    broken into). 
+
+                <jmp>: []           Pair in the form [<job_name>, <max_partitions>].
+                    <job_name>: str     The name of a job (instance of a task) in the form "J<task_index>-<job_index>"
+                                            (e.g. "J3-1" is the 1th instance of task 3).
+                    <max_parts>: int    The maximum number of partitions a job can be broken into. This partition
+                                            restriction overrides the value given by 'task_max_parts' for <task_name>
+                                            whose task index is <task_index>.
+  
+            job_frame_usage_edges: []
+                                List of <jfue> (triple of a job name, the frame name of the frame to assign the job to,
+                                    and the number of unitless time units of the job to assign to the frame). Assigning
+                                    jobs to frames reduces the number of possible scheduling combinations, drastically 
+                                    reducing the worst case runtime of the schedule generator, though poor assignments
+                                    could make finding a valid schedule impossible.
+
+                <jfue>: []          List of triples in the form [<job_name>, <frame_name>, <time_units>]. 
+                    <job_name>: str     The name of a job (instance of a task) in the form "J<task_index>-<job_index>"
+                                            (e.g. "J2-4" is the 4th instance of task 2).
+                    <frame_name>: str   The name of a frame in the form "F<frame_number>" (e.g. "F8" is the 8th frame 
+                                            in the schedule). Each frame has a length/capacity of <frame_size>. 
+                                            Frame "F1" starts at time 0.
+                                                <frame_number> = (frame_start_time / <frame_size>) + 1 
+                                                <frame_start_time> = (<frame_number> - 1) * <frame_size>
+                    <time_units>: int   The number of unitless time units from job <job_name> to assign to 
+                                            frame <frame_name>. 

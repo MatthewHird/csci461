@@ -1,0 +1,33 @@
+//  Empty Settings Template for CeSchedGen (Feb 2020)
+{
+    "output": {
+        "schedule_table": {
+            "print_table": true,
+            "space_frames": false,
+            "table_out_file_path": null
+        },
+        "schedule_timeline": {
+            "print_timeline": false,
+            "schedule_out_file_path": null
+        },
+        "schedule_json": {
+            "print_json": false,
+            "json_out_file_path": null
+        }
+    },
+    "iteration_counter": {
+        "counter_max": null,
+        "print_counter_every": 100
+    },
+    "schedule_parameters": {
+        "tasks": [],
+        "condition_sets": [
+            {
+                "frame_size": null,
+                "task_max_parts": [],
+                "job_max_parts": [],
+                "job_frame_usage_edges": []
+            },              
+        ]
+    }
+}
