@@ -1,0 +1,135 @@
+M68HC11 GAS  buff.s 			page 1
+
+
+   1                 	.include "buff.h"
+   1                 	;============================================-=
+   2                 	; File:
+   3                 	       .file "buff.h" 
+   4                 	; Behaviour: 
+   5                 	;      Library of Buffalo Monitor Routines
+   6                 	; Assumptions:
+   7                 	;      Routines only modify registers and the stack.
+   8                 	; Board:
+   9                 	;      CME11-E9-EVBU (with the PW link HACK)
+  10                 	; Author:
+  11                 	;      Peter Walsh
+  12                 	;============================================-=
+  13                 	
+  14                 	;---------------------------------------------
+  15                 	; Behaviour:
+  16                 	;    wstr calls Buffalo Monitor OUTSTRGO
+  17                 	; Assumptions:
+  18                 	;    none
+  19                 	; Restriction:
+  20                 	;    subroutine may only accesses registers and the stack
+  21                 	; Register and Memory Usage:
+  22                 	;    Precondition:
+  23                 	;      accd contains the string pointer
+  24                 	;    Postcondition:
+  25                 	;      ascii string referenced by b output to serial line
+  26                 	;    Destroys:
+  27                 	;      none
+  28                 	;---------------------------------------------
+  29                 	.global wstr
+  30                 	.global xwstr
+  31                 	
+  32                 	;---------------------------------------------
+  33                 	; Behaviour:
+  34                 	;    wcrlf calls Buffalo Monitor CRLF
+  35                 	; Assumptions:
+  36                 	;    none
+  37                 	; Restriction:
+  38                 	;    subroutine may only accesses registers and the stack
+  39                 	; Register and Memory Usage:
+  40                 	;    Precondition:
+  41                 	;      none
+  42                 	;    Postcondition:
+  43                 	;      ascii CR/LF output to serial line
+  44                 	;    Destroys:
+  45                 	;      none
+  46                 	;---------------------------------------------
+  47                 	.global wcrlf
+  48                 	.global xwcrlf
+   2                 	
+   3                 	;============================================-=
+   4                 	; File:
+   5                 	       .file "buff.s"
+   6                 	; Behaviour:
+   7                 	;      Library of Buffalo Monitor Routines.
+   8                 	; Assumptions:
+   9                 	;      Routines only modify registers and the stack.
+M68HC11 GAS  buff.s 			page 2
+
+
+  10                 	; Board:
+  11                 	;      CME11-E9-EVBU (with the PW link HACK)
+  12                 	; Author:
+  13                 	;      Peter Walsh Oct 19 2018
+  14                 	;============================================-=
+  15                 	
+  16                 	;----------------------------------------------
+  17                 	;            Text Section (code and data)
+  18                 	;----------------------------------------------
+  19                 	.sect .text
+  20                 	
+  21                 	;======================
+  22                 	; Buff routine stubs
+  23                 	;======================
+  24                 	
+  25                 	set OUTSTRGO, 0xffca
+  26                 	set OUTCRLF, 0xffc4
+  27                 	
+  28                 	
+  29 0000 BD FF C4    	wcrlf:  jsr OUTCRLF
+  30 0003 39          	        rts
+  31                 	
+  32                 	; C provides input parameter in d
+  33                 	; OUTSTRGO  expects input parameter in x
+  34                 	
+  35 0004 3C          	wstr:   pshx     ; save x 
+  36 0005 8F          	        xgdx
+  37 0006 3C          	        pshx     ; save d
+  38                 	
+  39 0007 07          	        tpa      ; save ccr
+  40 0008 36          	        psha
+  41                 	
+  42 0009 BD FF CA    	        jsr OUTSTRGO
+  43                 	
+  44 000c 32          	        pula
+  45 000d 06          	        tap      ; restore ccr
+  46                 	
+  47 000e 38          	        pulx     ; restore d
+  48 000f 8F          	        xgdx
+  49 0010 38          	        pulx     ; restore x
+  50 0011 39          	xwstr:  rts
+  51                 	
+  52                 	.end
+M68HC11 GAS  buff.s 			page 3
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 buff.s
+                            *ABS*:0000000000000000 buff.h
+              buff.s:0      .text:0000000000000000 L0F0
+              buff.s:35     .text:0000000000000004 wstr
+              buff.s:50     .text:0000000000000011 xwstr
+              buff.s:29     .text:0000000000000000 wcrlf
+              buff.s:25     *ABS*:000000000000ffca OUTSTRGO
+              buff.s:26     *ABS*:000000000000ffc4 OUTCRLF
+              buff.s:29     .text:0000000000000000 L0L0
+              buff.s:30     .text:0000000000000003 L0L1
+              buff.s:35     .text:0000000000000004 L0L2
+              buff.s:36     .text:0000000000000005 L0L3
+              buff.s:37     .text:0000000000000006 L0L4
+              buff.s:39     .text:0000000000000007 L0L5
+              buff.s:40     .text:0000000000000008 L0L6
+              buff.s:42     .text:0000000000000009 L0L7
+              buff.s:44     .text:000000000000000c L0L8
+              buff.s:45     .text:000000000000000d L0L9
+              buff.s:47     .text:000000000000000e L0L10
+              buff.s:48     .text:000000000000000f L0L11
+              buff.s:49     .text:0000000000000010 L0L12
+              buff.s:50     .text:0000000000000011 L0L13
+
+UNDEFINED SYMBOLS
+xwcrlf

@@ -54,3 +54,4 @@ dkms.conf
 Labs/Lab2/Python/src/model/__pycache__/
 
 *.pyc
+*.sublime-workspace

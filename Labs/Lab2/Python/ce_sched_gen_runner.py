@@ -54,12 +54,15 @@ def __main():
                 task_list.append(Task(task_ints[0], task_ints[1], task_ints[2], task_ints[3]))
             settings.schedule_parameters.tasks = task_list
 
-        ce_sched_gen = CeSchedGen(settings)
+        if len(settings.schedule_parameters.tasks) > 0:
+            ce_sched_gen = CeSchedGen(settings)
 
-        if generate_schedule_any:
-            ce_sched_gen.get_schedule_any()
+            if generate_schedule_any:
+                ce_sched_gen.get_schedule_any()
+            else:
+                ce_sched_gen.run()
         else:
-            ce_sched_gen.run()
+            print("Incorrect usage: Use -h option to see help and usage.")
 
     return ExitCode.SUCCESS
 
