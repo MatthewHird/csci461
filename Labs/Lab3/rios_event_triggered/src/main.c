@@ -52,8 +52,12 @@
 #define NUMBER_OF_TASKS 2
 #define TASK_PERIOD_GCD 200                   // Timer tick rate in ms
 
-#define TOGGLE_TSK_PERIOD 1000
-#define SEQUENCE_TSK_PERIOD 200
+#define TOGGLE_TSK_PERIOD 900
+#define SEQUENCE_TSK_PERIOD 400
+
+#define VIRTUAL_TIMER_LENGTH 12
+const unsigned short virtual_timer[] = {400, 400, 100, 300, 400, 200, 200, 400, 300, 100, 400, 400};
+volatile unsigned short virtual_index = 0;
 
 #define IDLE_TASK 255                         // 0 highest priority, 255 lowest
 
@@ -218,11 +222,16 @@ void end_task(task_t task) {
 void toc2_isr(void) {
     unsigned char i;
     unsigned char is_tick = FALSE;
-    if (toc2_interrupt_count < (TASK_PERIOD_GCD / TOC2_MS_PER_INTERRUPT)) {
+    unsigned short virtual_tick = virtual_timer[virtual_index];
+    if (toc2_interrupt_count < (virtual_tick / TOC2_MS_PER_INTERRUPT)) {
         ++toc2_interrupt_count;
     } else {
         is_tick = TRUE;
         toc2_interrupt_count = 0;
+        ++virtual_index;
+        if (virtual_index >= VIRTUAL_TIMER_LENGTH) {
+            virtual_index = 0;
+        }
     }
 
     update_toc2();
@@ -241,7 +250,7 @@ void toc2_isr(void) {
 
                 end_task(tasks[i]);
             }
-            tasks[i].elapsed_time += TASK_PERIOD_GCD;
+            tasks[i].elapsed_time += virtual_tick;
         }
     }
 }

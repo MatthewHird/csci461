@@ -1,0 +1,3 @@
+Absolute event times: [0, 400, 800, 900, 1200, 1600, 1800, 2000, 2400, 2700, 2800, 3200, 3600]
+Number of periodic events: 12
+const unsigned short virtual_timer[] = {400, 400, 100, 300, 400, 200, 200, 400, 300, 100, 400, 400};
