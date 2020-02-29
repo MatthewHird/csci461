@@ -37,6 +37,9 @@ buff.o: buff.s buff.h
 clean:
 	rm -f *.o *.elf *.gdb *.lst $(SD)/tmp/*
 
+clean_main.s:
+	rm -f main.s *.o *.elf *.gdb *.lst $(SD)/tmp/*
+
 main.s: main.c
 	$(CC) -S -Os -fomit-frame-pointer -mshort main.c
 

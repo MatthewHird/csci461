@@ -36,6 +36,7 @@
 #define CLEAR_OC2_MASK (OC2_MASK)
 
 // Data Direction Bits
+#define DDRA3 (0x08)             // PA3
 #define DDRA7 (0x80)             // PA7
 
 // OUTPUT
@@ -48,7 +49,7 @@
 #define SEQ_TSK_STATE_010 (SEQ_TSK_OUT_BIT1)
 #define SEQ_TSK_STATE_001 (SEQ_TSK_OUT_BIT0)
 
-#define TOG_TSK_OUT_BIT  (0x80)             // PA7
+#define TOG_TSK_OUT_BIT (0x80)              // PA7
 #define TOG_TSK_OUT_MASK (TOG_TSK_OUT_BIT)
 #define TOG_TSK_STATE_ON (TOG_TSK_OUT_BIT)
 #define TOG_TSK_STATE_OFF (0x00)
@@ -56,12 +57,8 @@
 #define NUMBER_OF_TASKS 2
 #define TASK_PERIOD_GCD 200                   // Timer tick rate in ms
 
-#define TOGGLE_TSK_PERIOD 900
-#define SEQUENCE_TSK_PERIOD 400
-
-#define VIRTUAL_TIMER_LENGTH 12
-const unsigned short virtual_timer[] = {400, 400, 100, 300, 400, 200, 200, 400, 300, 100, 400, 400};
-volatile unsigned short virtual_index = 0;
+#define TOGGLE_TSK_PERIOD 1000
+#define SEQUENCE_TSK_PERIOD 200
 
 #define IDLE_TASK 255                         // 0 highest priority, 255 lowest
 
@@ -76,8 +73,6 @@ typedef struct task {
     unsigned char is_running;            
     unsigned char (*tick_func)(unsigned short cur_state);    // Function to call for task's tick
 } task_t;
-
-volatile unsigned char is_tick = FALSE;
 
 volatile unsigned short toc2_interrupt_count = 0;
 
@@ -127,54 +122,16 @@ unsigned char _start() {
     disable_interrupts();
     init_tasks();
     init_toc2();
-
-    volatile unsigned char i;
-    for (i=0; i < NUMBER_OF_TASKS; ++i) {               // Heart of scheduler code
-        start_task(tasks[i], i);
-
-        tasks[i].state = tasks[i].tick_func(tasks[i].state);    // Execute tick
-
-        end_task(tasks[i]);
-    }
-
     enable_interrupts();
 
-    while(TRUE) {
-        is_tick = FALSE;
-        
-        while(!is_tick) {};
-
-        volatile unsigned short virtual_tick = virtual_timer[virtual_index];
-
-        ++virtual_index;
-        if (virtual_index >= VIRTUAL_TIMER_LENGTH) {
-            virtual_index = 0;
-        }
-
-        enable_interrupts();
-
-        for (i=0; i < NUMBER_OF_TASKS; ++i) {               // Heart of scheduler code
-            if (
-                (tasks[i].elapsed_time >= tasks[i].period)  // Task ready
-                && (running_tasks[current_task_index] > i)  // Task priority > current task priority
-                && (!tasks[i].is_running)                   // Task not already running (no self-preemption)
-            ) {
-                start_task(tasks[i], i);
-
-                tasks[i].state = tasks[i].tick_func(tasks[i].state);    // Execute tick
-
-                end_task(tasks[i]);
-            }
-            tasks[i].elapsed_time += virtual_tick;
-        }
-    };
+    while(TRUE) {};
 
     return 0;
 }
 
 void init_tasks(void) {
     // Priority assigned to lower position tasks in array
-    volatile unsigned char i = 0;
+    unsigned char i = 0;
     tasks[i].period = SEQUENCE_TSK_PERIOD;
     tasks[i].elapsed_time = SEQUENCE_TSK_PERIOD;
     tasks[i].state = SEQ_TSK_STATE_001;
@@ -182,7 +139,7 @@ void init_tasks(void) {
     tasks[i].tick_func = &sequence_tsk_tick_func;
     ++i;
 
-    pactl |= DDRA7;
+    pactl |= DDRA7 | DDRA3;
     tasks[i].period = TOGGLE_TSK_PERIOD;
     tasks[i].elapsed_time = TOGGLE_TSK_PERIOD;
     tasks[i].state = TOG_TSK_STATE_OFF;
@@ -254,7 +211,7 @@ void start_task(task_t task,unsigned char task_number) {
     task.is_running = TRUE;                                 // Mark as running
     current_task_index += 1;
     running_tasks[current_task_index] = task_number;        // Add to running_tasks
-    // enable_interrupts();                                    // End critical section
+    enable_interrupts();                                    // End critical section
 }
 
 void end_task(task_t task) {
@@ -262,11 +219,13 @@ void end_task(task_t task) {
     task.is_running = FALSE;
     running_tasks[current_task_index] = IDLE_TASK;          // Remove from running_tasks
     current_task_index -= 1;
-    // enable_interrupts();                                    // End critical section
+    enable_interrupts();                                    // End critical section
 }
 
 void toc2_isr(void) {
-    if (toc2_interrupt_count < (virtual_timer[virtual_index] / TOC2_MS_PER_INTERRUPT)) {
+    unsigned char i;
+    unsigned char is_tick = FALSE;
+    if (toc2_interrupt_count < (TASK_PERIOD_GCD / TOC2_MS_PER_INTERRUPT)) {
         ++toc2_interrupt_count;
     } else {
         is_tick = TRUE;
@@ -274,5 +233,20 @@ void toc2_isr(void) {
     }
 
     update_toc2();
-    // enable_interrupts();
+    enable_interrupts();
+
+    if (is_tick) {
+        for (i=0; i < NUMBER_OF_TASKS; ++i) {               // Heart of scheduler code
+            if (
+                (tasks[i].elapsed_time >= tasks[i].period)  // Task ready
+                && (running_tasks[current_task_index] > i)  // Task priority > current task priority
+                && (!tasks[i].is_running)                   // Task not already running (no self-preemption)
+            ) {
+                start_task(tasks[i], i);
+                tasks[i].state = tasks[i].tick_func(tasks[i].state);    // Execute tick
+                end_task(tasks[i]);
+            }
+            tasks[i].elapsed_time += TASK_PERIOD_GCD;
+        }
+    }
 }
