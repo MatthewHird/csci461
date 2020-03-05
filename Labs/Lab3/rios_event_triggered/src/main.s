@@ -2,7 +2,7 @@
 ;;; Start MC68HC11 gcc assembly output
 ;;; gcc compiler 3.3.6-m68hc1x-20060122
 ;;; Command:	/usr/lib/gcc-lib/m68hc11/3.3.6-m68hc1x-20060122/cc1 -quiet -D__GNUC__=3 -D__GNUC_MINOR__=3 -D__GNUC_PATCHLEVEL__=6 -Dmc68hc1x -D__mc68hc1x__ -D__mc68hc1x -D__HAVE_SHORT_INT__ -D__INT__=16 -Dmc6811 -DMC6811 -Dmc68hc11 main.c -quiet -dumpbase main.c -mshort -auxbase main -Os -fomit-frame-pointer -o main.s
-;;; Compiled:	Fri Feb 28 17:46:09 2020
+;;; Compiled:	Wed Mar  4 18:44:02 2020
 ;;; (META)compiled by GNU C version 6.3.0 20170221.
 ;;;-----------------------------------------
 	.file	"main.c"
@@ -10,31 +10,19 @@
 	.globl	virtual_timer
 	.section	.rodata
 	.type	virtual_timer, @object
-	.size	virtual_timer, 24
+	.size	virtual_timer, 10
 virtual_timer:
-	.word	400
-	.word	400
-	.word	100
-	.word	300
-	.word	400
-	.word	200
-	.word	200
-	.word	400
-	.word	300
-	.word	100
-	.word	400
-	.word	400
+	.word	30
+	.word	30
+	.word	30
+	.word	10
+	.word	20
 	.globl	virtual_index
 	.sect	.data
 	.type	virtual_index, @object
 	.size	virtual_index, 2
 virtual_index:
 	.word	0
-	.globl	is_tick
-	.type	is_tick, @object
-	.size	is_tick, 1
-is_tick:
-	.byte	0
 	.globl	toc2_interrupt_count
 	.type	toc2_interrupt_count, @object
 	.size	toc2_interrupt_count, 2
@@ -105,314 +93,41 @@ t8:
 t9:
 	.string	"Test9\n\004"
 	.zero	2
-	; extern	disable_interrupts
-	; extern	init_tasks
-	; extern	init_toc2
-	; extern	start_task
-	; extern	end_task
-	; extern	enable_interrupts
+	; extern	sequence_tsk_tick_func
+	; extern	toggle_tsk_tick_func
+	; extern	toc2_isr
 	.sect	.text
 	.globl	_start
 	.type	_start,@function
 _start:
-	pshx
-	pshx
-	pshx
 	des
-	ldx	*_.d1
-	pshx
-	bsr	disable_interrupts
-	bsr	init_tasks
-	bsr	init_toc2
+; Begin inline assembler code
+#APP
+	sei
+; End of inline assembler code
+#NO_APP
 	tsx
-	clr	2,x
-	ldab	2,x
-	cmpb	#1
-	bhi	.L22
-.L6:
-	tsy
-	ldab	2,y
-	pshb
-	des
-	tsx
-	ldab	4,x
-	clra
-	asld
-	asld
-	asld
-	addd	#tasks
-	xgdy
-	ldx	6,y
-	pshx
-	ldx	4,y
-	pshx
-	ldx	2,y
-	pshx
-	ldx	0,y
-	pshx
-	bsr	start_task
-	tsy
-	ldab	12,y
-	clra
-	asld
-	asld
-	asld
-	addd	#tasks+4
-	std	15,y
-	ldab	12,y
-	clra
-	asld
-	asld
-	asld
-	addd	#tasks+6
-	xgdx
-	ldab	12,y
-	clra
-	asld
-	asld
-	asld
-	addd	#tasks+4
-	std	*_.z
-	stx	*_.xy
-	ldx	*_.z
+	clr	0,x
 	ldab	0,x
-	ldx	*_.xy
-	clra
-	ldx	0,x
-	jsr	0,x
-	tsx
-	ldx	15,x
-	stab	0,x
-	tsy
-	ldab	12,y
 	clra
 	asld
 	asld
 	asld
 	addd	#tasks
+	ldx	#30
 	xgdy
-	ldx	6,y
-	pshx
-	ldx	4,y
-	pshx
-	ldx	2,y
-	pshx
-	ldx	0,y
-	pshx
-	bsr	end_task
-	tsx
-	ldab	#18
-	abx
-	txs
-	tsx
-	ldab	2,x
-	incb
-	stab	2,x
-	ldab	2,x
-	cmpb	#1
-	bls	.L6
-.L22:
-	bsr	enable_interrupts
-.L25:
-	clr	is_tick
-.L10:
-	ldab	is_tick
-	beq	.L10
-	ldd	virtual_index
-	asld
-	addd	#virtual_timer
-	xgdx
-	ldd	0,x
+	stx	0,y
 	tsy
-	std	3,y
-	ldx	virtual_index
-	inx
-	stx	virtual_index
-	ldd	virtual_index
-	cpd	#11
-	bls	.L13
-	clr	virtual_index+1
-	clr	virtual_index
-.L13:
-	bsr	enable_interrupts
-	stx	*_.xy
-	tsx
-	clr	2,x
-	ldab	2,x
-	ldx	*_.xy
-	cmpb	#1
-	bhi	.L25
-.L19:
-	tsx
-	ldab	2,x
-	clra
-	asld
-	asld
-	asld
-	addd	#tasks+2
-	xgdx
-	tsy
-	ldab	2,y
-	clra
-	asld
-	asld
-	asld
-	addd	#tasks
-	ldx	0,x
-	std	*_.z
-	stx	*_.xy
-	ldx	*_.z
-	ldd	0,x
-	ldx	*_.xy
-	std	*_.tmp
-	cpx	*_.tmp
-	blo	.L18
-	ldab	current_task_index
-	ldx	#running_tasks
-	abx
-	ldab	0,x
-	stab	*_.d1+1
-	ldab	2,y
-	cmpb	*_.d1+1
-	bhs	.L18
-	ldab	2,y
-	clra
-	asld
-	asld
-	asld
-	addd	#tasks+5
-	xgdy
 	ldab	0,y
-	bne	.L18
-	tsx
-	ldab	2,x
-	pshb
-	des
-	tsx
-	ldab	4,x
-	clra
-	asld
-	asld
-	asld
-	addd	#tasks
-	xgdy
-	ldx	6,y
-	pshx
-	ldx	4,y
-	pshx
-	ldx	2,y
-	pshx
-	ldx	0,y
-	pshx
-	bsr	start_task
-	tsy
-	ldab	12,y
-	clra
-	asld
-	asld
-	asld
-	addd	#tasks+4
-	std	17,y
-	ldab	12,y
-	clra
-	asld
-	asld
-	asld
-	addd	#tasks+6
-	xgdx
-	ldab	12,y
-	clra
-	asld
-	asld
-	asld
-	addd	#tasks+4
-	std	*_.z
-	stx	*_.xy
-	ldx	*_.z
-	ldab	0,x
-	ldx	*_.xy
-	clra
-	ldx	0,x
-	jsr	0,x
-	tsx
-	ldx	17,x
-	stab	0,x
-	tsy
-	ldab	12,y
-	clra
-	asld
-	asld
-	asld
-	addd	#tasks
-	xgdy
-	ldx	6,y
-	pshx
-	ldx	4,y
-	pshx
-	ldx	2,y
-	pshx
-	ldx	0,y
-	pshx
-	bsr	end_task
-	tsx
-	xgdx
-	addd	#18
-	xgdx
-	txs
-.L18:
-	stx	*_.xy
-	tsx
-	ldab	2,x
 	clra
 	asld
 	asld
 	asld
 	addd	#tasks+2
 	xgdy
-	ldd	0,y
-	stx	*_.z
-	ldx	3,x
-	stx	*_.tmp
-	addd	*_.tmp
-	std	0,y
-	ldx	*_.z
-	ldab	2,x
-	incb
-	stab	2,x
-	ldab	2,x
-	cmpb	#1
-	bls	.L19
-	bra	.L25
-	.size	_start, .-_start
-	; extern	sequence_tsk_tick_func
-	; extern	toggle_tsk_tick_func
-	.globl	init_tasks
-	.type	init_tasks,@function
-init_tasks:
-	des
-	clrb
-	tsy
-	stab	0,y
-	ldab	0,y
-	clra
-	asld
-	asld
-	asld
-	addd	#tasks
-	ldy	#400
-	xgdx
-	sty	0,x
+	stx	0,y
 	tsx
 	ldab	0,x
-	clra
-	asld
-	asld
-	asld
-	addd	#tasks+2
-	xgdx
-	sty	0,x
-	tsy
-	ldab	0,y
 	clra
 	asld
 	asld
@@ -421,18 +136,15 @@ init_tasks:
 	xgdy
 	ldab	#16
 	stab	0,y
-	tsy
-	ldab	0,y
+	ldab	0,x
 	clra
 	asld
 	asld
 	asld
 	addd	#tasks+5
 	xgdy
-	clrb
-	stab	0,y
-	tsy
-	ldab	0,y
+	clr	0,y
+	ldab	0,x
 	clra
 	asld
 	asld
@@ -454,7 +166,7 @@ init_tasks:
 	asld
 	asld
 	addd	#tasks
-	ldy	#900
+	ldy	#100
 	xgdx
 	sty	0,x
 	tsx
@@ -473,10 +185,8 @@ init_tasks:
 	asld
 	asld
 	addd	#tasks+4
-	xgdy
-	clrb
-	stab	0,y
-	tsy
+	xgdx
+	clr	0,x
 	ldab	0,y
 	clra
 	asld
@@ -484,31 +194,59 @@ init_tasks:
 	asld
 	addd	#tasks+5
 	xgdy
-	clrb
-	stab	0,y
-	tsy
-	ldab	0,y
+	clr	0,y
+	tsx
+	ldab	0,x
 	clra
 	asld
 	asld
 	asld
 	addd	#tasks+6
-	ldy	#toggle_tsk_tick_func
-	xgdx
+	ldx	#toggle_tsk_tick_func
+	xgdy
+	stx	0,y
+	tsy
+	ldab	0,y
+	incb
+	stab	0,y
+	ldx	#220
+	ldab	#126
+	stab	0,x
+	ldx	#221
+	ldy	#toc2_isr
 	sty	0,x
-	ins
-	rts
-	.size	init_tasks, .-init_tasks
+	ldx	#4130
+	bset	0,x, #64
+	ldx	#4131
+	bset	0,x, #64
+	ldx	#4110
+	ldd	0,x
+	addd	#-5536
+	ldx	#4120
+	std	0,x
+	ldx	#20
+	stx	toc2_interrupt_count
+; Begin inline assembler code
+#APP
+	cli
+; End of inline assembler code
+#NO_APP
+.L2:
+	bra	.L2
+	.size	_start, .-_start
 	.globl	toggle_tsk_tick_func
 	.type	toggle_tsk_tick_func,@function
 toggle_tsk_tick_func:
 	std	*_.tmp
-	bne	.L31
-	ldy	#128
-	bra	.L28
-.L31:
+	ldy	*_.tmp
+	beq	.L8
+	cpy	#128
+	bne	.L6
 	ldy	#0
-.L28:
+	bra	.L6
+.L8:
+	ldy	#128
+.L6:
 	ldx	#4096
 	ldab	0,x
 	andb	#127
@@ -523,18 +261,22 @@ toggle_tsk_tick_func:
 sequence_tsk_tick_func:
 	xgdy
 	cpy	#32
-	beq	.L36
-	bls	.L38
+	beq	.L14
+	bhi	.L18
+	cpy	#16
+	beq	.L15
+	bra	.L12
+.L18:
 	cpy	#64
-	bne	.L38
+	bne	.L12
 	ldy	#32
-	bra	.L34
-.L36:
+	bra	.L12
+.L14:
 	ldy	#16
-	bra	.L34
-.L38:
+	bra	.L12
+.L15:
 	ldy	#64
-.L34:
+.L12:
 	ldx	#4096
 	ldab	0,x
 	andb	#-113
@@ -544,101 +286,6 @@ sequence_tsk_tick_func:
 	xgdy
 	rts
 	.size	sequence_tsk_tick_func, .-sequence_tsk_tick_func
-	.globl	enable_interrupts
-	.type	enable_interrupts,@function
-enable_interrupts:
-; Begin inline assembler code
-#APP
-	cli
-; End of inline assembler code
-#NO_APP
-	rts
-	.size	enable_interrupts, .-enable_interrupts
-	.globl	disable_interrupts
-	.type	disable_interrupts,@function
-disable_interrupts:
-; Begin inline assembler code
-#APP
-	sei
-; End of inline assembler code
-#NO_APP
-	rts
-	.size	disable_interrupts, .-disable_interrupts
-	.globl	enable_toc2
-	.type	enable_toc2,@function
-enable_toc2:
-	ldx	#4130
-	bset	0,x, #64
-	rts
-	.size	enable_toc2, .-enable_toc2
-	.globl	disable_toc2
-	.type	disable_toc2,@function
-disable_toc2:
-	ldx	#4130
-	ldab	0,x
-	stab	0,x
-	rts
-	.size	disable_toc2, .-disable_toc2
-	; extern	toc2_isr
-	.globl	init_toc2
-	.type	init_toc2,@function
-init_toc2:
-	ldx	#220
-	ldab	#126
-	stab	0,x
-	ldx	#221
-	ldd	#toc2_isr
-	std	0,x
-	bsr	enable_toc2
-	ldx	#4131
-	bset	0,x, #64
-	ldx	#4110
-	ldd	0,x
-	addd	#-5536
-	ldx	#4120
-	std	0,x
-	rts
-	.size	init_toc2, .-init_toc2
-	.globl	update_toc2
-	.type	update_toc2,@function
-update_toc2:
-	ldx	#4120
-	ldd	0,x
-	addd	#-5536
-	std	0,x
-	ldx	#4131
-	bset	0,x, #64
-	rts
-	.size	update_toc2, .-update_toc2
-	.globl	start_task
-	.type	start_task,@function
-start_task:
-	bsr	disable_interrupts
-	ldab	current_task_index
-	incb
-	stab	current_task_index
-	ldab	current_task_index
-	ldx	#running_tasks
-	abx
-	tsy
-	ldab	11,y
-	stab	0,x
-	rts
-	.size	start_task, .-start_task
-	.globl	end_task
-	.type	end_task,@function
-end_task:
-	bsr	disable_interrupts
-	ldab	current_task_index
-	ldx	#running_tasks
-	abx
-	ldab	#-1
-	stab	0,x
-	ldab	current_task_index
-	decb
-	stab	current_task_index
-	rts
-	.size	end_task, .-end_task
 	.globl	toc2_isr
 	.type	toc2_isr,@function
 	.interrupt	toc2_isr
@@ -649,29 +296,219 @@ toc2_isr:
 	pshx
 	ldx	*_.xy
 	pshx
+	pshx
+	pshx
+	pshx
+	des
+	ldx	*_.d1
+	pshx
+	tsx
+	clr	3,x
 	ldd	virtual_index
 	asld
 	addd	#virtual_timer
-	xgdx
-	ldd	0,x
-	ldx	#30
-	idiv
-	xgdx
-	ldx	toc2_interrupt_count
-	std	*_.tmp
-	cpx	*_.tmp
-	bhs	.L50
+	xgdy
+	ldd	0,y
+	std	4,x
+	ldd	toc2_interrupt_count
+	cpd	#19
+	bhi	.L20
 	ldx	toc2_interrupt_count
 	inx
 	stx	toc2_interrupt_count
-	bra	.L51
-.L50:
+	bra	.L21
+.L20:
 	ldab	#1
-	stab	is_tick
+	stab	3,x
 	clr	toc2_interrupt_count+1
 	clr	toc2_interrupt_count
-.L51:
-	bsr	update_toc2
+	ldx	virtual_index
+	inx
+	stx	virtual_index
+	ldd	virtual_index
+	cpd	#4
+	bls	.L21
+	clr	virtual_index+1
+	clr	virtual_index
+.L21:
+	ldx	#4120
+	ldd	0,x
+	addd	#-5536
+	std	0,x
+	ldx	#4131
+	bset	0,x, #64
+; Begin inline assembler code
+#APP
+	cli
+; End of inline assembler code
+#NO_APP
+	tsx
+	ldab	3,x
+	beq	.L19
+	clr	2,x
+	ldab	2,x
+	cmpb	#1
+	bhi	.L19
+.L29:
+	tsy
+	ldab	2,y
+	clra
+	asld
+	asld
+	asld
+	addd	#tasks+2
+	xgdx
+	ldab	2,y
+	clra
+	asld
+	asld
+	asld
+	addd	#tasks
+	ldx	0,x
+	xgdy
+	ldd	0,y
+	std	*_.tmp
+	cpx	*_.tmp
+	blo	.L28
+	ldab	current_task_index
+	ldx	#running_tasks
+	abx
+	ldab	0,x
+	stab	*_.d1+1
+	tsy
+	ldab	2,y
+	cmpb	*_.d1+1
+	bhs	.L28
+	ldab	2,y
+	clra
+	asld
+	asld
+	asld
+	addd	#tasks+5
+	xgdy
+	ldab	0,y
+	tsx
+	stab	6,x
+	bne	.L28
+; Begin inline assembler code
+#APP
+	sei
+; End of inline assembler code
+#NO_APP
+	ldab	2,x
+	clra
+	asld
+	asld
+	asld
+	addd	#tasks+2
+	xgdy
+	clr	1,y
+	clr	0,y
+	ldab	2,x
+	clra
+	asld
+	asld
+	asld
+	addd	#tasks+5
+	xgdy
+	ldab	#1
+	stab	0,y
+	ldab	current_task_index
+	incb
+	stab	current_task_index
+	ldab	current_task_index
+	ldx	#running_tasks
+	abx
+	tsy
+	ldab	2,y
+	stab	0,x
+; Begin inline assembler code
+#APP
+	cli
+; End of inline assembler code
+#NO_APP
+	ldab	2,y
+	clra
+	asld
+	asld
+	asld
+	addd	#tasks+4
+	std	7,y
+	ldab	2,y
+	clra
+	asld
+	asld
+	asld
+	addd	#tasks+6
+	xgdx
+	ldab	2,y
+	clra
+	asld
+	asld
+	asld
+	addd	#tasks+4
+	xgdy
+	ldab	0,y
+	clra
+	ldx	0,x
+	jsr	0,x
+	tsx
+	ldx	7,x
+	stab	0,x
+; Begin inline assembler code
+#APP
+	sei
+; End of inline assembler code
+#NO_APP
+	tsy
+	ldab	2,y
+	clra
+	asld
+	asld
+	asld
+	addd	#tasks+5
+	xgdy
+	tsx
+	ldab	6,x
+	stab	0,y
+	ldab	current_task_index
+	ldx	#running_tasks
+	abx
+	ldab	#-1
+	stab	0,x
+	ldab	current_task_index
+	decb
+	stab	current_task_index
+; Begin inline assembler code
+#APP
+	cli
+; End of inline assembler code
+#NO_APP
+.L28:
+	tsy
+	ldab	2,y
+	clra
+	asld
+	asld
+	asld
+	addd	#tasks+2
+	xgdx
+	ldd	0,x
+	addd	#20
+	std	0,x
+	ldab	2,y
+	incb
+	stab	2,y
+	ldab	2,y
+	cmpb	#1
+	bls	.L29
+.L19:
+	pulx
+	stx	*_.d1
+	pulx
+	pulx
+	pulx
+	ins
 	pulx
 	stx	*_.xy
 	pulx

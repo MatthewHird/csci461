@@ -24,6 +24,8 @@
 #define tflg1 *(volatile unsigned char *)(0x1023)
 #define pactl *(volatile unsigned char *)(0x1026)
 
+#define TIME_PER_INTERRUPT 20000
+
 #define HC11_MILLISECOND 2000
 #define TOC2_MS_PER_INTERRUPT 30
 #define TOC2_INTERRUPT_TIME (TOC2_MS_PER_INTERRUPT * HC11_MILLISECOND)
@@ -36,6 +38,7 @@
 #define CLEAR_OC2_MASK (OC2_MASK)
 
 // Data Direction Bits
+#define DDRA3 (0x08)             // PA3
 #define DDRA7 (0x80)             // PA7
 
 // OUTPUT
@@ -54,10 +57,10 @@
 #define TOG_TSK_STATE_OFF (0x00)
 
 #define NUMBER_OF_TASKS 2
-#define TASK_PERIOD_GCD 200                   // Timer tick rate in ms
+#define TASK_PERIOD_GCD 20                   // Timer tick rate in ms
 
-#define TOGGLE_TSK_PERIOD 1000
-#define SEQUENCE_TSK_PERIOD 200
+#define TOGGLE_TSK_PERIOD 100
+#define SEQUENCE_TSK_PERIOD 20
 
 #define IDLE_TASK 255                         // 0 highest priority, 255 lowest
 
@@ -66,10 +69,10 @@
 #define FALSE 0
 
 typedef struct task {
-    unsigned short period;                      // Rate at which the task should tick
-    unsigned short elapsed_time;                // Time since task's last tick
-    unsigned char state;            
-    unsigned char is_running;            
+    volatile unsigned short period;                      // Rate at which the task should tick
+    volatile unsigned short elapsed_time;                // Time since task's last tick
+    volatile unsigned char state;            
+    volatile unsigned char is_running;            
     unsigned char (*tick_func)(unsigned short cur_state);    // Function to call for task's tick
 } task_t;
 
@@ -79,9 +82,6 @@ volatile task_t tasks[NUMBER_OF_TASKS];
 
 volatile unsigned char running_tasks[4] = { IDLE_TASK };    // Track running tasks-[0] always IDLE_TASK
 volatile unsigned char current_task_index = 0;              // Index of highest priority task in running_tasks
-
-volatile unsigned char is_tick = FALSE;
-
 
 // imported from buff.s (for debugging))
 void wstr(char* s);
@@ -108,53 +108,13 @@ char rev_temp[100];
 void init_tasks(void);
 unsigned short toggle_tsk_tick_func(unsigned short state);
 unsigned short sequence_tsk_tick_func(unsigned short state);
-
-void enable_interrupts(void);
-void disable_interrupts(void);
-void enable_toc2(void);
-void disable_toc2(void);
-void init_toc2(void);
-void update_toc2(void);
-void start_task(task_t task, unsigned char task_number);
-void end_task(task_t task);
 void toc2_isr(void) __attribute__((interrupt));
 
 
 unsigned char _start() {
-    disable_interrupts();
-    init_tasks();
-    init_toc2();
-    enable_interrupts();
-
-    while(TRUE) {
-        is_tick = FALSE;
-        volatile unsigned char i = 0;
-
-        while(!is_tick) {};
-
-        if (is_tick) {
-            for (i=0; i < NUMBER_OF_TASKS; ++i) {               // Heart of scheduler code
-                if (
-                    (tasks[i].elapsed_time >= tasks[i].period)  // Task ready
-                    && (running_tasks[current_task_index] > i)  // Task priority > current task priority
-                    && (!tasks[i].is_running)                   // Task not already running (no self-preemption)
-                ) {
-                    start_task(tasks[i], i);
-                    tasks[i].state = tasks[i].tick_func(tasks[i].state);    // Execute tick
-                    end_task(tasks[i]);
-                }
-                tasks[i].elapsed_time += TASK_PERIOD_GCD;
-            }
-        }
-
-    }
-
-    return 0;
-}
-
-void init_tasks(void) {
-    // Priority assigned to lower position tasks in array
+    __asm__("sei");
     volatile unsigned char i = 0;
+
     tasks[i].period = SEQUENCE_TSK_PERIOD;
     tasks[i].elapsed_time = SEQUENCE_TSK_PERIOD;
     tasks[i].state = SEQ_TSK_STATE_001;
@@ -168,7 +128,22 @@ void init_tasks(void) {
     tasks[i].state = TOG_TSK_STATE_OFF;
     tasks[i].is_running = FALSE;
     tasks[i].tick_func = &toggle_tsk_tick_func;
-} 
+    ++i;
+    
+    
+    jump_table_toc2_opcode = OPCODE_JMP_EXTENDED;
+    jump_table_toc2_isr = (short int *) toc2_isr;
+    tmsk1 |= OC2_MASK;
+    tflg1 |= CLEAR_OC2_MASK;
+    toc2 = tcnt + TOC2_INTERRUPT_TIME;
+
+    toc2_interrupt_count = TASK_PERIOD_GCD;
+    __asm__("cli");
+
+    while(TRUE) {};
+
+    return 0;
+}
 
 // Task: Toggle an output
 unsigned short toggle_tsk_tick_func(unsigned short state) {
@@ -179,9 +154,9 @@ unsigned short toggle_tsk_tick_func(unsigned short state) {
         case TOG_TSK_STATE_OFF:
             state = TOG_TSK_STATE_ON;
             break;
-        default:
-            state = TOG_TSK_STATE_OFF;
-            break;
+        // default:
+        //     state = TOG_TSK_STATE_OFF;
+        //     break;
     }
 
     port_a = (port_a & (~TOG_TSK_OUT_MASK)) | state;
@@ -200,59 +175,52 @@ unsigned short sequence_tsk_tick_func(unsigned short state) {
         case SEQ_TSK_STATE_001:
             state = SEQ_TSK_STATE_100;
             break;
-        default:
-            state = SEQ_TSK_STATE_100;
-            break;
+        // default:
+        //     state = SEQ_TSK_STATE_100;
+        //     break;
     }
 
     port_a = (port_a & (~SEQ_TSK_OUT_MASK)) | state;
     return state;
 }
 
-void enable_interrupts(void) { __asm__("cli"); }
-void disable_interrupts(void) { __asm__("sei"); }
-
-void enable_toc2(void) { tmsk1 |= OC2_MASK; }
-void disable_toc2(void) { tmsk1 |= !OC2_MASK; }
-
-void init_toc2(void) {
-    jump_table_toc2_opcode = OPCODE_JMP_EXTENDED;
-    jump_table_toc2_isr = (short int *) toc2_isr;
-    enable_toc2();
-    tflg1 |= CLEAR_OC2_MASK;
-    toc2 = tcnt + TOC2_INTERRUPT_TIME;
-}
-
-void update_toc2(void) {
-    toc2 += TOC2_INTERRUPT_TIME;
-    tflg1 |= CLEAR_OC2_MASK;
-}
-
-void start_task(task_t task,unsigned char task_number) {
-    disable_interrupts();                                   // Critical section
-    task.elapsed_time = 0;                                  // Reset time since last tick
-    task.is_running = TRUE;                                 // Mark as running
-    current_task_index += 1;
-    running_tasks[current_task_index] = task_number;        // Add to running_tasks
-    enable_interrupts();                                    // End critical section
-}
-
-void end_task(task_t task) {
-    disable_interrupts();                                   // Critical section
-    task.is_running = FALSE;
-    running_tasks[current_task_index] = IDLE_TASK;          // Remove from running_tasks
-    current_task_index -= 1;
-    enable_interrupts();                                    // End critical section
-}
-
 void toc2_isr(void) {
-    if (toc2_interrupt_count < (TASK_PERIOD_GCD / TOC2_MS_PER_INTERRUPT)) {
+    volatile unsigned char i;
+    volatile unsigned char is_tick = FALSE;
+    if (toc2_interrupt_count < TASK_PERIOD_GCD) {
         ++toc2_interrupt_count;
     } else {
         is_tick = TRUE;
         toc2_interrupt_count = 0;
     }
 
-    update_toc2();
-    enable_interrupts();
+    toc2 += TOC2_INTERRUPT_TIME;
+    tflg1 |= CLEAR_OC2_MASK;
+    __asm__("cli");
+
+    if (is_tick) {
+        for (i=0; i < NUMBER_OF_TASKS; ++i) {               // Heart of scheduler code
+            if (
+                (tasks[i].elapsed_time >= tasks[i].period)  // Task ready
+                && (running_tasks[current_task_index] > i)  // Task priority > current task priority
+                && (!tasks[i].is_running)                   // Task not already running (no self-preemption)
+            ) {
+                __asm__("sei");                                   // Critical section
+                tasks[i].elapsed_time = 0;                                  // Reset time since last tick
+                tasks[i].is_running = TRUE;                                 // Mark as running
+                current_task_index += 1;
+                running_tasks[current_task_index] = i;        // Add to running_tasks
+                __asm__("cli"); 
+
+                tasks[i].state = tasks[i].tick_func(tasks[i].state);    // Execute tick
+                
+                __asm__("sei");                                   // Critical section
+                tasks[i].is_running = FALSE;
+                running_tasks[current_task_index] = IDLE_TASK;          // Remove from running_tasks
+                current_task_index -= 1;
+                __asm__("cli");   
+            }
+            tasks[i].elapsed_time += TASK_PERIOD_GCD;
+        }
+    }
 }

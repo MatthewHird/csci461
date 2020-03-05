@@ -61,7 +61,7 @@
 #define SEQUENCE_TSK_PERIOD 400
 
 #define VIRTUAL_TIMER_LENGTH 12
-const unsigned short virtual_timer[] = {400, 400, 100, 300, 400, 200, 200, 400, 300, 100, 400, 400};
+volatile unsigned short virtual_timer[] = {400, 400, 100, 300, 400, 200, 200, 400, 300, 100, 400, 400};
 volatile unsigned short virtual_index = 0;
 
 #define IDLE_TASK 255                         // 0 highest priority, 255 lowest
@@ -71,10 +71,10 @@ volatile unsigned short virtual_index = 0;
 #define FALSE 0
 
 typedef struct task {
-    unsigned short period;                      // Rate at which the task should tick
-    unsigned short elapsed_time;                // Time since task's last tick
-    unsigned char state;            
-    unsigned char is_running;            
+    volatile unsigned short period;                      // Rate at which the task should tick
+    volatile unsigned short elapsed_time;                // Time since task's last tick
+    volatile unsigned char state;            
+    volatile unsigned char is_running;            
     unsigned char (*tick_func)(unsigned short cur_state);    // Function to call for task's tick
 } task_t;
 
@@ -227,9 +227,9 @@ void end_task(task_t task) {
 }
 
 void toc2_isr(void) {
-    unsigned char i;
-    unsigned char is_tick = FALSE;
-    unsigned short virtual_tick = virtual_timer[virtual_index];
+    volatile unsigned char i;
+    volatile unsigned char is_tick = FALSE;
+    volatile unsigned short virtual_tick = virtual_timer[virtual_index];
     if (toc2_interrupt_count < (virtual_tick / TOC2_MS_PER_INTERRUPT)) {
         ++toc2_interrupt_count;
     } else {
