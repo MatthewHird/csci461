@@ -68,8 +68,8 @@ def generate_virtual_timer_c_array_from_filepath(filepath: str):
     rel_events = _get_gaps(sorted(abs_events))
 
     print("Absolute event times: " + str(sorted(abs_events)))
-    print("Number of periodic events: " + str(len(rel_events)))
-    print('const unsigned short virtual_timer[] = {' + ', '.join([str(i) for i in rel_events]) + '};')
+    print("#define VIRTUAL_TIMER_LENGTH " + str(len(rel_events)))
+    print('const unsigned char virtual_timer[' + str(len(rel_events)) + '] = {' + ', '.join([str(i) for i in rel_events]) + '};')
 
 
 if __name__ == '__main__':

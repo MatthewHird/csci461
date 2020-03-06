@@ -1,6 +1,25 @@
 /*======================================================================
   Behaviour: 
-    Preemptive RIOS
+    Event driven implementation of preemptive RIOS for the HC11
+
+    Runs 2 example programs:
+        Sequence:   Loops through a sequence of 3 outputs (Bit2 -> Bit1 -> Bit0)
+        Toggle:     Toggles an output (Bit0) on and off.
+
+  Assumptions:
+    Program is executed through the Buffalo Monitor and can access 
+        the Buffalo Monitor Interrupt Jump Table
+    Program uses interrupts to its advantage.
+
+  Pins: 
+    Program is designed to use the following I/O pins on the HC11: 
+      OUT:
+        Sequence:
+            PA6 -> State(Bit2)
+            PA5 -> State(Bit1)
+            PA4 -> State(Bit0)
+        Toggle:
+            PA7 -> State(Bit0)
 
   Assumptions:
     Program is executed through the Buffalo Monitor and can access 
@@ -9,7 +28,7 @@
 
 
   Author: Matthew Hird
-  Date: Feb 27 2020
+  Date: Mar 4 2020
   ======================================================================*/
 
 // HC11 Vector, Flag, & Port Access Points
@@ -24,12 +43,6 @@
 #define tflg1 *(volatile unsigned char *)(0x1023)
 #define pactl *(volatile unsigned char *)(0x1026)
 
-#define TIME_PER_INTERRUPT 20000
-
-#define HC11_MILLISECOND 2000
-#define TOC2_MS_PER_INTERRUPT 30
-#define TOC2_INTERRUPT_TIME (TOC2_MS_PER_INTERRUPT * HC11_MILLISECOND)
-
 // HC11 Opcodes
 #define OPCODE_JMP_EXTENDED (0x7e)
 
@@ -38,8 +51,7 @@
 #define CLEAR_OC2_MASK (OC2_MASK)
 
 // Data Direction Bits
-#define DDRA3 (0x08)             // PA3
-#define DDRA7 (0x80)             // PA7
+#define DDRA7 (0x80)                        // PA7
 
 // OUTPUT
 #define SEQ_TSK_OUT_BIT2 (0x40)             // PA6
@@ -56,28 +68,35 @@
 #define TOG_TSK_STATE_ON (TOG_TSK_OUT_BIT)
 #define TOG_TSK_STATE_OFF (0x00)
 
+#define TOC2_INTERRUPT_TIME 20000           // 10 ms
+
 #define NUMBER_OF_TASKS 2
-#define TASK_PERIOD_GCD 20                   // Timer tick rate in ms
 
-#define TOGGLE_TSK_PERIOD 100
-#define SEQUENCE_TSK_PERIOD 30
+// #define TOGGLE_TSK_PERIOD 100               // in 10 ms
+// #define SEQUENCE_TSK_PERIOD 30              // in 10 ms
 
-#define VIRTUAL_TIMER_LENGTH 5
-const unsigned short virtual_timer[5] = {30, 30, 30, 10, 20, 30, 30, 20, 10, 30, 30, 30};;
+// #define VIRTUAL_TIMER_LENGTH 12
+// const unsigned char virtual_timer[VIRTUAL_TIMER_LENGTH] = {30, 30, 30, 10, 20, 30, 30, 20, 10, 30, 30, 30};
+
+#define TOGGLE_TSK_PERIOD 100               // in 10 ms
+#define SEQUENCE_TSK_PERIOD 90              // in 10 ms
+#define VIRTUAL_TIMER_LENGTH 18
+const unsigned char virtual_timer[18] = {90, 10, 80, 20, 70, 30, 60, 40, 50, 50, 40, 60, 30, 70, 20, 80, 10, 90};
+
 volatile unsigned short virtual_index = 0;
 
-#define IDLE_TASK 255                         // 0 highest priority, 255 lowest
+#define IDLE_TASK 255                       // 0 highest priority, 255 lowest
 
 // Readability Constants
 #define TRUE 1
 #define FALSE 0
 
 typedef struct task {
-    volatile unsigned short period;                      // Rate at which the task should tick
-    volatile unsigned short elapsed_time;                // Time since task's last tick
+    volatile unsigned short period;                         // Rate at which the task should tick
+    volatile unsigned short elapsed_time;                   // Time since task's last tick
     volatile unsigned char state;            
     volatile unsigned char is_running;            
-    unsigned char (*tick_func)(unsigned short cur_state);    // Function to call for task's tick
+    unsigned char (*tick_func)(unsigned short cur_state);   // Function to call for task's tick
 } task_t;
 
 volatile unsigned short toc2_interrupt_count = 0;
@@ -85,28 +104,7 @@ volatile unsigned short toc2_interrupt_count = 0;
 volatile task_t tasks[NUMBER_OF_TASKS];
 
 volatile unsigned char running_tasks[4] = { IDLE_TASK };    // Track running tasks-[0] always IDLE_TASK
-volatile unsigned char current_task_index = 0;             // Index of highest priority task in running_tasks
-
-// imported from buff.s (for debugging))
-void wstr(char* s);
-void wcrlf(void);
-
-// for debugging
-void reverse(char* in_str, unsigned short length); 
-void itoa(unsigned short num, char* out_str); 
-void print_int(unsigned short print_number);
-
-char t1[10] = "Test1\n\4";
-char t2[10] = "Test2\n\4";
-char t3[10] = "Test3\n\4";
-char t4[10] = "Test4\n\4";
-char t5[10] = "Test5\n\4";
-char t6[10] = "Test6\n\4";
-char t7[10] = "Test7\n\4";
-char t8[10] = "Test8\n\4";
-char t9[10] = "Test9\n\4";
-char rev_temp[100];
-
+volatile unsigned char current_task_index = 0;              // Index of highest priority task in running_tasks
 
 // Forward Declarations
 void init_tasks(void);
@@ -120,7 +118,7 @@ unsigned char _start() {
     volatile unsigned char i = 0;
 
     tasks[i].period = SEQUENCE_TSK_PERIOD;
-    tasks[i].elapsed_time = SEQUENCE_TSK_PERIOD;
+    tasks[i].elapsed_time = 0;
     tasks[i].state = SEQ_TSK_STATE_001;
     tasks[i].is_running = FALSE;
     tasks[i].tick_func = &sequence_tsk_tick_func;
@@ -128,7 +126,7 @@ unsigned char _start() {
 
     pactl |= DDRA7;
     tasks[i].period = TOGGLE_TSK_PERIOD;
-    tasks[i].elapsed_time = TOGGLE_TSK_PERIOD;
+    tasks[i].elapsed_time = 0;
     tasks[i].state = TOG_TSK_STATE_OFF;
     tasks[i].is_running = FALSE;
     tasks[i].tick_func = &toggle_tsk_tick_func;
@@ -141,7 +139,9 @@ unsigned char _start() {
     tflg1 |= CLEAR_OC2_MASK;
     toc2 = tcnt + TOC2_INTERRUPT_TIME;
 
-    toc2_interrupt_count = TASK_PERIOD_GCD;
+    virtual_index = VIRTUAL_TIMER_LENGTH - 1;
+    toc2_interrupt_count = virtual_timer[virtual_index];
+
     __asm__("cli");
 
     while(TRUE) {};
@@ -158,9 +158,9 @@ unsigned short toggle_tsk_tick_func(unsigned short state) {
         case TOG_TSK_STATE_OFF:
             state = TOG_TSK_STATE_ON;
             break;
-        // default:
-        //     state = TOG_TSK_STATE_OFF;
-        //     break;
+        default:
+            state = TOG_TSK_STATE_OFF;
+            break;
     }
 
     port_a = (port_a & (~TOG_TSK_OUT_MASK)) | state;
@@ -179,21 +179,24 @@ unsigned short sequence_tsk_tick_func(unsigned short state) {
         case SEQ_TSK_STATE_001:
             state = SEQ_TSK_STATE_100;
             break;
-        // default:
-        //     state = SEQ_TSK_STATE_100;
-        //     break;
+        default:
+            state = SEQ_TSK_STATE_100;
+            break;
     }
 
     port_a = (port_a & (~SEQ_TSK_OUT_MASK)) | state;
     return state;
 }
 
+//  event triggered rios scheduler routine
 void toc2_isr(void) {
     volatile unsigned char i;
     volatile unsigned char is_tick = FALSE;
-    volatile unsigned short virtual_tick = virtual_timer[virtual_index];
+    volatile unsigned char virtual_tick = virtual_timer[virtual_index];
+    volatile unsigned char virtual_tick_next;
 
-    if (toc2_interrupt_count < TASK_PERIOD_GCD) {
+
+    if (toc2_interrupt_count < virtual_tick) {
         ++toc2_interrupt_count;
     } else {
         is_tick = TRUE;
@@ -202,6 +205,7 @@ void toc2_isr(void) {
         if (virtual_index >= VIRTUAL_TIMER_LENGTH) {
             virtual_index = 0;
         }
+        virtual_tick_next = virtual_timer[virtual_index];
     }
 
     toc2 += TOC2_INTERRUPT_TIME;
@@ -215,22 +219,22 @@ void toc2_isr(void) {
                 && (running_tasks[current_task_index] > i)  // Task priority > current task priority
                 && (!tasks[i].is_running)                   // Task not already running (no self-preemption)
             ) {
-                __asm__("sei");                                   // Critical section
-                tasks[i].elapsed_time = 0;                                  // Reset time since last tick
-                tasks[i].is_running = TRUE;                                 // Mark as running
+                __asm__("sei");                                         // Critical section
+                tasks[i].elapsed_time = 0;                              // Reset time since last tick
+                tasks[i].is_running = TRUE;                             // Mark as running
                 current_task_index += 1;
-                running_tasks[current_task_index] = i;        // Add to running_tasks
+                running_tasks[current_task_index] = i;                  // Add to running_tasks
                 __asm__("cli"); 
 
                 tasks[i].state = tasks[i].tick_func(tasks[i].state);    // Execute tick
                 
-                __asm__("sei");                                   // Critical section
+                __asm__("sei");                                         // Critical section
                 tasks[i].is_running = FALSE;
                 running_tasks[current_task_index] = IDLE_TASK;          // Remove from running_tasks
                 current_task_index -= 1;
                 __asm__("cli");   
             }
-            tasks[i].elapsed_time += TASK_PERIOD_GCD;
+            tasks[i].elapsed_time += virtual_tick_next;
         }
     }
 }

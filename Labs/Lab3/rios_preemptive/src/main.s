@@ -2,7 +2,7 @@
 ;;; Start MC68HC11 gcc assembly output
 ;;; gcc compiler 3.3.6-m68hc1x-20060122
 ;;; Command:	/usr/lib/gcc-lib/m68hc11/3.3.6-m68hc1x-20060122/cc1 -quiet -D__GNUC__=3 -D__GNUC_MINOR__=3 -D__GNUC_PATCHLEVEL__=6 -Dmc68hc1x -D__mc68hc1x__ -D__mc68hc1x -D__HAVE_SHORT_INT__ -D__INT__=16 -Dmc6811 -DMC6811 -Dmc68hc11 main.c -quiet -dumpbase main.c -mshort -auxbase main -Os -fomit-frame-pointer -o main.s
-;;; Compiled:	Wed Mar  4 18:11:44 2020
+;;; Compiled:	Thu Mar  5 10:32:36 2020
 ;;; (META)compiled by GNU C version 6.3.0 20170221.
 ;;;-----------------------------------------
 	.file	"main.c"
@@ -24,60 +24,6 @@ running_tasks:
 	.size	current_task_index, 1
 current_task_index:
 	.byte	0
-	.globl	t1
-	.type	t1, @object
-	.size	t1, 10
-t1:
-	.string	"Test1\n\004"
-	.zero	2
-	.globl	t2
-	.type	t2, @object
-	.size	t2, 10
-t2:
-	.string	"Test2\n\004"
-	.zero	2
-	.globl	t3
-	.type	t3, @object
-	.size	t3, 10
-t3:
-	.string	"Test3\n\004"
-	.zero	2
-	.globl	t4
-	.type	t4, @object
-	.size	t4, 10
-t4:
-	.string	"Test4\n\004"
-	.zero	2
-	.globl	t5
-	.type	t5, @object
-	.size	t5, 10
-t5:
-	.string	"Test5\n\004"
-	.zero	2
-	.globl	t6
-	.type	t6, @object
-	.size	t6, 10
-t6:
-	.string	"Test6\n\004"
-	.zero	2
-	.globl	t7
-	.type	t7, @object
-	.size	t7, 10
-t7:
-	.string	"Test7\n\004"
-	.zero	2
-	.globl	t8
-	.type	t8, @object
-	.size	t8, 10
-t8:
-	.string	"Test8\n\004"
-	.zero	2
-	.globl	t9
-	.type	t9, @object
-	.size	t9, 10
-t9:
-	.string	"Test9\n\004"
-	.zero	2
 	; extern	sequence_tsk_tick_func
 	; extern	toggle_tsk_tick_func
 	; extern	toc2_isr
@@ -223,14 +169,11 @@ _start:
 	.type	toggle_tsk_tick_func,@function
 toggle_tsk_tick_func:
 	std	*_.tmp
-	ldy	*_.tmp
-	beq	.L8
-	cpy	#128
-	bne	.L6
-	ldy	#0
-	bra	.L6
-.L8:
+	bne	.L9
 	ldy	#128
+	bra	.L6
+.L9:
+	ldy	#0
 .L6:
 	ldx	#4096
 	ldab	0,x
@@ -247,19 +190,15 @@ sequence_tsk_tick_func:
 	xgdy
 	cpy	#32
 	beq	.L14
-	bhi	.L18
-	cpy	#16
-	beq	.L15
-	bra	.L12
-.L18:
+	bls	.L16
 	cpy	#64
-	bne	.L12
+	bne	.L16
 	ldy	#32
 	bra	.L12
 .L14:
 	ldy	#16
 	bra	.L12
-.L15:
+.L16:
 	ldy	#64
 .L12:
 	ldx	#4096
@@ -487,5 +426,4 @@ toc2_isr:
 	rti
 	.size	toc2_isr, .-toc2_isr
 	.comm	tasks,16,1
-	.comm	rev_temp,100,1
 	.ident	"GCC: (GNU) 3.3.6-m68hc1x-20060122"

@@ -5,7 +5,7 @@ M68HC11 GAS  soft.s 			page 1
    2                 	;;; Start MC68HC11 gcc assembly output
    3                 	;;; gcc compiler 3.3.6-m68hc1x-20060122
    4                 	;;; Command:	/usr/lib/gcc-lib/m68hc11/3.3.6-m68hc1x-20060122/cc1 -quiet -D__GNUC__=3 -D__GNUC_MINOR
-   5                 	;;; Compiled:	Wed Mar  4 18:11:44 2020
+   5                 	;;; Compiled:	Thu Mar  5 10:32:36 2020
    6                 	;;; (META)compiled by GNU C version 6.3.0 20170221.
    7                 	;;;-----------------------------------------
    8                 		.file	"main.c"
@@ -27,510 +27,436 @@ M68HC11 GAS  soft.s 			page 1
   24                 		.size	current_task_index, 1
   25                 	current_task_index:
   26 0006 00          		.byte	0
-  27                 		.globl	t1
-  28                 		.type	t1, @object
-  29                 		.size	t1, 10
-  30                 	t1:
-  31 0007 54 65 73 74 		.string	"Test1\n\004"
-  31      31 0A 04 00 
-  32 000f 00 00       		.zero	2
-  33                 		.globl	t2
-  34                 		.type	t2, @object
-  35                 		.size	t2, 10
-  36                 	t2:
-  37 0011 54 65 73 74 		.string	"Test2\n\004"
-  37      32 0A 04 00 
-  38 0019 00 00       		.zero	2
-  39                 		.globl	t3
-  40                 		.type	t3, @object
-  41                 		.size	t3, 10
-  42                 	t3:
-  43 001b 54 65 73 74 		.string	"Test3\n\004"
-  43      33 0A 04 00 
-  44 0023 00 00       		.zero	2
-  45                 		.globl	t4
-  46                 		.type	t4, @object
-  47                 		.size	t4, 10
-  48                 	t4:
-  49 0025 54 65 73 74 		.string	"Test4\n\004"
-  49      34 0A 04 00 
-  50 002d 00 00       		.zero	2
-  51                 		.globl	t5
-  52                 		.type	t5, @object
-  53                 		.size	t5, 10
+  27                 		; extern	sequence_tsk_tick_func
+  28                 		; extern	toggle_tsk_tick_func
+  29                 		; extern	toc2_isr
+  30                 		.sect	.text
+  31                 		.globl	_start
+  32                 		.type	_start,@function
+  33                 	_start:
+  34 0000 34          		des
+  35                 	; Begin inline assembler code
+  36                 	#APP
+  37 0001 0F          		sei
+  38                 	; End of inline assembler code
+  39                 	#NO_APP
+  40 0002 30          		tsx
+  41 0003 6F 00       		clr	0,x
+  42 0005 E6 00       		ldab	0,x
+  43 0007 4F          		clra
+  44 0008 05          		asld
+  45 0009 05          		asld
+  46 000a 05          		asld
+  47 000b C3 00 00    		addd	#tasks
+  48 000e CE 00 14    		ldx	#20
+  49 0011 18 8F       		xgdy
+  50 0013 CD EF 00    		stx	0,y
+  51 0016 18 30       		tsy
+  52 0018 18 E6 00    		ldab	0,y
+  53 001b 4F          		clra
+  54 001c 05          		asld
+  55 001d 05          		asld
+  56 001e 05          		asld
+  57 001f C3 00 02    		addd	#tasks+2
 M68HC11 GAS  soft.s 			page 2
 
 
-  54                 	t5:
-  55 002f 54 65 73 74 		.string	"Test5\n\004"
-  55      35 0A 04 00 
-  56 0037 00 00       		.zero	2
-  57                 		.globl	t6
-  58                 		.type	t6, @object
-  59                 		.size	t6, 10
-  60                 	t6:
-  61 0039 54 65 73 74 		.string	"Test6\n\004"
-  61      36 0A 04 00 
-  62 0041 00 00       		.zero	2
-  63                 		.globl	t7
-  64                 		.type	t7, @object
-  65                 		.size	t7, 10
-  66                 	t7:
-  67 0043 54 65 73 74 		.string	"Test7\n\004"
-  67      37 0A 04 00 
-  68 004b 00 00       		.zero	2
-  69                 		.globl	t8
-  70                 		.type	t8, @object
-  71                 		.size	t8, 10
-  72                 	t8:
-  73 004d 54 65 73 74 		.string	"Test8\n\004"
-  73      38 0A 04 00 
-  74 0055 00 00       		.zero	2
-  75                 		.globl	t9
-  76                 		.type	t9, @object
-  77                 		.size	t9, 10
-  78                 	t9:
-  79 0057 54 65 73 74 		.string	"Test9\n\004"
-  79      39 0A 04 00 
-  80 005f 00 00       		.zero	2
-  81                 		; extern	sequence_tsk_tick_func
-  82                 		; extern	toggle_tsk_tick_func
-  83                 		; extern	toc2_isr
-  84                 		.sect	.text
-  85                 		.globl	_start
-  86                 		.type	_start,@function
-  87                 	_start:
-  88 0000 34          		des
-  89                 	; Begin inline assembler code
-  90                 	#APP
-  91 0001 0F          		sei
-  92                 	; End of inline assembler code
-  93                 	#NO_APP
-  94 0002 30          		tsx
-  95 0003 6F 00       		clr	0,x
-  96 0005 E6 00       		ldab	0,x
-  97 0007 4F          		clra
-  98 0008 05          		asld
-  99 0009 05          		asld
- 100 000a 05          		asld
- 101 000b C3 00 00    		addd	#tasks
- 102 000e CE 00 14    		ldx	#20
- 103 0011 18 8F       		xgdy
- 104 0013 CD EF 00    		stx	0,y
- 105 0016 18 30       		tsy
+  58 0022 18 8F       		xgdy
+  59 0024 CD EF 00    		stx	0,y
+  60 0027 30          		tsx
+  61 0028 E6 00       		ldab	0,x
+  62 002a 4F          		clra
+  63 002b 05          		asld
+  64 002c 05          		asld
+  65 002d 05          		asld
+  66 002e C3 00 04    		addd	#tasks+4
+  67 0031 18 8F       		xgdy
+  68 0033 C6 10       		ldab	#16
+  69 0035 18 E7 00    		stab	0,y
+  70 0038 E6 00       		ldab	0,x
+  71 003a 4F          		clra
+  72 003b 05          		asld
+  73 003c 05          		asld
+  74 003d 05          		asld
+  75 003e C3 00 05    		addd	#tasks+5
+  76 0041 18 8F       		xgdy
+  77 0043 18 6F 00    		clr	0,y
+  78 0046 E6 00       		ldab	0,x
+  79 0048 4F          		clra
+  80 0049 05          		asld
+  81 004a 05          		asld
+  82 004b 05          		asld
+  83 004c C3 00 06    		addd	#tasks+6
+  84 004f 18 CE 00 00 		ldy	#sequence_tsk_tick_func
+  85 0053 8F          		xgdx
+  86 0054 1A EF 00    		sty	0,x
+  87 0057 30          		tsx
+  88 0058 E6 00       		ldab	0,x
+  89 005a 5C          		incb
+  90 005b E7 00       		stab	0,x
+  91 005d CE 10 26    		ldx	#4134
+  92 0060 1C 00 80    		bset	0,x, #-128
+  93 0063 18 30       		tsy
+  94 0065 18 E6 00    		ldab	0,y
+  95 0068 4F          		clra
+  96 0069 05          		asld
+  97 006a 05          		asld
+  98 006b 05          		asld
+  99 006c C3 00 00    		addd	#tasks
+ 100 006f 18 CE 00 64 		ldy	#100
+ 101 0073 8F          		xgdx
+ 102 0074 1A EF 00    		sty	0,x
+ 103 0077 30          		tsx
+ 104 0078 E6 00       		ldab	0,x
+ 105 007a 4F          		clra
+ 106 007b 05          		asld
+ 107 007c 05          		asld
+ 108 007d 05          		asld
+ 109 007e C3 00 02    		addd	#tasks+2
+ 110 0081 8F          		xgdx
+ 111 0082 1A EF 00    		sty	0,x
+ 112 0085 18 30       		tsy
+ 113 0087 18 E6 00    		ldab	0,y
+ 114 008a 4F          		clra
 M68HC11 GAS  soft.s 			page 3
 
 
- 106 0018 18 E6 00    		ldab	0,y
- 107 001b 4F          		clra
- 108 001c 05          		asld
- 109 001d 05          		asld
- 110 001e 05          		asld
- 111 001f C3 00 02    		addd	#tasks+2
- 112 0022 18 8F       		xgdy
- 113 0024 CD EF 00    		stx	0,y
- 114 0027 30          		tsx
- 115 0028 E6 00       		ldab	0,x
- 116 002a 4F          		clra
- 117 002b 05          		asld
- 118 002c 05          		asld
- 119 002d 05          		asld
- 120 002e C3 00 04    		addd	#tasks+4
- 121 0031 18 8F       		xgdy
- 122 0033 C6 10       		ldab	#16
- 123 0035 18 E7 00    		stab	0,y
- 124 0038 E6 00       		ldab	0,x
- 125 003a 4F          		clra
- 126 003b 05          		asld
- 127 003c 05          		asld
- 128 003d 05          		asld
- 129 003e C3 00 05    		addd	#tasks+5
- 130 0041 18 8F       		xgdy
- 131 0043 18 6F 00    		clr	0,y
- 132 0046 E6 00       		ldab	0,x
- 133 0048 4F          		clra
- 134 0049 05          		asld
- 135 004a 05          		asld
- 136 004b 05          		asld
- 137 004c C3 00 06    		addd	#tasks+6
- 138 004f 18 CE 00 00 		ldy	#sequence_tsk_tick_func
- 139 0053 8F          		xgdx
- 140 0054 1A EF 00    		sty	0,x
- 141 0057 30          		tsx
- 142 0058 E6 00       		ldab	0,x
- 143 005a 5C          		incb
- 144 005b E7 00       		stab	0,x
- 145 005d CE 10 26    		ldx	#4134
- 146 0060 1C 00 80    		bset	0,x, #-128
- 147 0063 18 30       		tsy
- 148 0065 18 E6 00    		ldab	0,y
- 149 0068 4F          		clra
- 150 0069 05          		asld
- 151 006a 05          		asld
- 152 006b 05          		asld
- 153 006c C3 00 00    		addd	#tasks
- 154 006f 18 CE 00 64 		ldy	#100
- 155 0073 8F          		xgdx
- 156 0074 1A EF 00    		sty	0,x
- 157 0077 30          		tsx
- 158 0078 E6 00       		ldab	0,x
- 159 007a 4F          		clra
- 160 007b 05          		asld
- 161 007c 05          		asld
- 162 007d 05          		asld
+ 115 008b 05          		asld
+ 116 008c 05          		asld
+ 117 008d 05          		asld
+ 118 008e C3 00 04    		addd	#tasks+4
+ 119 0091 8F          		xgdx
+ 120 0092 6F 00       		clr	0,x
+ 121 0094 18 E6 00    		ldab	0,y
+ 122 0097 4F          		clra
+ 123 0098 05          		asld
+ 124 0099 05          		asld
+ 125 009a 05          		asld
+ 126 009b C3 00 05    		addd	#tasks+5
+ 127 009e 18 8F       		xgdy
+ 128 00a0 18 6F 00    		clr	0,y
+ 129 00a3 30          		tsx
+ 130 00a4 E6 00       		ldab	0,x
+ 131 00a6 4F          		clra
+ 132 00a7 05          		asld
+ 133 00a8 05          		asld
+ 134 00a9 05          		asld
+ 135 00aa C3 00 06    		addd	#tasks+6
+ 136 00ad CE 00 00    		ldx	#toggle_tsk_tick_func
+ 137 00b0 18 8F       		xgdy
+ 138 00b2 CD EF 00    		stx	0,y
+ 139 00b5 18 30       		tsy
+ 140 00b7 18 E6 00    		ldab	0,y
+ 141 00ba 5C          		incb
+ 142 00bb 18 E7 00    		stab	0,y
+ 143 00be CE 00 DC    		ldx	#220
+ 144 00c1 C6 7E       		ldab	#126
+ 145 00c3 E7 00       		stab	0,x
+ 146 00c5 CE 00 DD    		ldx	#221
+ 147 00c8 18 CE 00 00 		ldy	#toc2_isr
+ 148 00cc 1A EF 00    		sty	0,x
+ 149 00cf CE 10 22    		ldx	#4130
+ 150 00d2 1C 00 40    		bset	0,x, #64
+ 151 00d5 CE 10 23    		ldx	#4131
+ 152 00d8 1C 00 40    		bset	0,x, #64
+ 153 00db CE 10 0E    		ldx	#4110
+ 154 00de EC 00       		ldd	0,x
+ 155 00e0 C3 EA 60    		addd	#-5536
+ 156 00e3 CE 10 18    		ldx	#4120
+ 157 00e6 ED 00       		std	0,x
+ 158 00e8 CE 00 14    		ldx	#20
+ 159 00eb FF 00 00    		stx	toc2_interrupt_count
+ 160                 	; Begin inline assembler code
+ 161                 	#APP
+ 162 00ee 0E          		cli
+ 163                 	; End of inline assembler code
+ 164                 	#NO_APP
+ 165                 	.L2:
+ 166 00ef 20 FE       		bra	.L2
+ 167                 		.size	_start, .-_start
+ 168                 		.globl	toggle_tsk_tick_func
+ 169                 		.type	toggle_tsk_tick_func,@function
+ 170                 	toggle_tsk_tick_func:
+ 171 00f1 DD 00       		std	*_.tmp
 M68HC11 GAS  soft.s 			page 4
 
 
- 163 007e C3 00 02    		addd	#tasks+2
- 164 0081 8F          		xgdx
- 165 0082 1A EF 00    		sty	0,x
- 166 0085 18 30       		tsy
- 167 0087 18 E6 00    		ldab	0,y
- 168 008a 4F          		clra
- 169 008b 05          		asld
- 170 008c 05          		asld
- 171 008d 05          		asld
- 172 008e C3 00 04    		addd	#tasks+4
- 173 0091 8F          		xgdx
- 174 0092 6F 00       		clr	0,x
- 175 0094 18 E6 00    		ldab	0,y
- 176 0097 4F          		clra
- 177 0098 05          		asld
- 178 0099 05          		asld
- 179 009a 05          		asld
- 180 009b C3 00 05    		addd	#tasks+5
- 181 009e 18 8F       		xgdy
- 182 00a0 18 6F 00    		clr	0,y
- 183 00a3 30          		tsx
- 184 00a4 E6 00       		ldab	0,x
- 185 00a6 4F          		clra
- 186 00a7 05          		asld
- 187 00a8 05          		asld
- 188 00a9 05          		asld
- 189 00aa C3 00 06    		addd	#tasks+6
- 190 00ad CE 00 00    		ldx	#toggle_tsk_tick_func
- 191 00b0 18 8F       		xgdy
- 192 00b2 CD EF 00    		stx	0,y
- 193 00b5 18 30       		tsy
- 194 00b7 18 E6 00    		ldab	0,y
- 195 00ba 5C          		incb
- 196 00bb 18 E7 00    		stab	0,y
- 197 00be CE 00 DC    		ldx	#220
- 198 00c1 C6 7E       		ldab	#126
- 199 00c3 E7 00       		stab	0,x
- 200 00c5 CE 00 DD    		ldx	#221
- 201 00c8 18 CE 00 00 		ldy	#toc2_isr
- 202 00cc 1A EF 00    		sty	0,x
- 203 00cf CE 10 22    		ldx	#4130
- 204 00d2 1C 00 40    		bset	0,x, #64
- 205 00d5 CE 10 23    		ldx	#4131
- 206 00d8 1C 00 40    		bset	0,x, #64
- 207 00db CE 10 0E    		ldx	#4110
- 208 00de EC 00       		ldd	0,x
- 209 00e0 C3 EA 60    		addd	#-5536
- 210 00e3 CE 10 18    		ldx	#4120
- 211 00e6 ED 00       		std	0,x
- 212 00e8 CE 00 14    		ldx	#20
- 213 00eb FF 00 00    		stx	toc2_interrupt_count
- 214                 	; Begin inline assembler code
- 215                 	#APP
- 216 00ee 0E          		cli
- 217                 	; End of inline assembler code
- 218                 	#NO_APP
- 219                 	.L2:
+ 172 00f3 26 06       		bne	.L9
+ 173 00f5 18 CE 00 80 		ldy	#128
+ 174 00f9 20 04       		bra	.L6
+ 175                 	.L9:
+ 176 00fb 18 CE 00 00 		ldy	#0
+ 177                 	.L6:
+ 178 00ff CE 10 00    		ldx	#4096
+ 179 0102 E6 00       		ldab	0,x
+ 180 0104 C4 7F       		andb	#127
+ 181 0106 18 DF 00    		sty	*_.tmp
+ 182 0109 DA 01       		orab	*_.tmp+1
+ 183 010b E7 00       		stab	0,x
+ 184 010d 18 8F       		xgdy
+ 185 010f 39          		rts
+ 186                 		.size	toggle_tsk_tick_func, .-toggle_tsk_tick_func
+ 187                 		.globl	sequence_tsk_tick_func
+ 188                 		.type	sequence_tsk_tick_func,@function
+ 189                 	sequence_tsk_tick_func:
+ 190 0110 18 8F       		xgdy
+ 191 0112 18 8C 00 20 		cpy	#32
+ 192 0116 27 0E       		beq	.L14
+ 193 0118 23 12       		bls	.L16
+ 194 011a 18 8C 00 40 		cpy	#64
+ 195 011e 26 0C       		bne	.L16
+ 196 0120 18 CE 00 20 		ldy	#32
+ 197 0124 20 0A       		bra	.L12
+ 198                 	.L14:
+ 199 0126 18 CE 00 10 		ldy	#16
+ 200 012a 20 04       		bra	.L12
+ 201                 	.L16:
+ 202 012c 18 CE 00 40 		ldy	#64
+ 203                 	.L12:
+ 204 0130 CE 10 00    		ldx	#4096
+ 205 0133 E6 00       		ldab	0,x
+ 206 0135 C4 8F       		andb	#-113
+ 207 0137 18 DF 00    		sty	*_.tmp
+ 208 013a DA 01       		orab	*_.tmp+1
+ 209 013c E7 00       		stab	0,x
+ 210 013e 18 8F       		xgdy
+ 211 0140 39          		rts
+ 212                 		.size	sequence_tsk_tick_func, .-sequence_tsk_tick_func
+ 213                 		.globl	toc2_isr
+ 214                 		.type	toc2_isr,@function
+ 215                 		.interrupt	toc2_isr
+ 216                 	toc2_isr:
+ 217 0141 DE 00       		ldx	*_.tmp
+ 218 0143 3C          		pshx
+ 219 0144 DE 00       		ldx	*_.z
+ 220 0146 3C          		pshx
+ 221 0147 DE 00       		ldx	*_.xy
+ 222 0149 3C          		pshx
+ 223 014a 3C          		pshx
+ 224 014b 3C          		pshx
+ 225 014c 34          		des
+ 226 014d DE 00       		ldx	*_.d1
+ 227 014f 3C          		pshx
+ 228 0150 30          		tsx
 M68HC11 GAS  soft.s 			page 5
 
 
- 220 00ef 20 FE       		bra	.L2
- 221                 		.size	_start, .-_start
- 222                 		.globl	toggle_tsk_tick_func
- 223                 		.type	toggle_tsk_tick_func,@function
- 224                 	toggle_tsk_tick_func:
- 225 00f1 DD 00       		std	*_.tmp
- 226 00f3 18 DE 00    		ldy	*_.tmp
- 227 00f6 27 0C       		beq	.L8
- 228 00f8 18 8C 00 80 		cpy	#128
- 229 00fc 26 0A       		bne	.L6
- 230 00fe 18 CE 00 00 		ldy	#0
- 231 0102 20 04       		bra	.L6
- 232                 	.L8:
- 233 0104 18 CE 00 80 		ldy	#128
- 234                 	.L6:
- 235 0108 CE 10 00    		ldx	#4096
- 236 010b E6 00       		ldab	0,x
- 237 010d C4 7F       		andb	#127
- 238 010f 18 DF 00    		sty	*_.tmp
- 239 0112 DA 01       		orab	*_.tmp+1
- 240 0114 E7 00       		stab	0,x
- 241 0116 18 8F       		xgdy
- 242 0118 39          		rts
- 243                 		.size	toggle_tsk_tick_func, .-toggle_tsk_tick_func
- 244                 		.globl	sequence_tsk_tick_func
- 245                 		.type	sequence_tsk_tick_func,@function
- 246                 	sequence_tsk_tick_func:
- 247 0119 18 8F       		xgdy
- 248 011b 18 8C 00 20 		cpy	#32
- 249 011f 27 16       		beq	.L14
- 250 0121 22 08       		bhi	.L18
- 251 0123 18 8C 00 10 		cpy	#16
- 252 0127 27 14       		beq	.L15
- 253 0129 20 16       		bra	.L12
- 254                 	.L18:
- 255 012b 18 8C 00 40 		cpy	#64
- 256 012f 26 10       		bne	.L12
- 257 0131 18 CE 00 20 		ldy	#32
- 258 0135 20 0A       		bra	.L12
- 259                 	.L14:
- 260 0137 18 CE 00 10 		ldy	#16
- 261 013b 20 04       		bra	.L12
- 262                 	.L15:
- 263 013d 18 CE 00 40 		ldy	#64
- 264                 	.L12:
- 265 0141 CE 10 00    		ldx	#4096
- 266 0144 E6 00       		ldab	0,x
- 267 0146 C4 8F       		andb	#-113
- 268 0148 18 DF 00    		sty	*_.tmp
- 269 014b DA 01       		orab	*_.tmp+1
- 270 014d E7 00       		stab	0,x
- 271 014f 18 8F       		xgdy
- 272 0151 39          		rts
- 273                 		.size	sequence_tsk_tick_func, .-sequence_tsk_tick_func
- 274                 		.globl	toc2_isr
- 275                 		.type	toc2_isr,@function
- 276                 		.interrupt	toc2_isr
+ 229 0151 6F 03       		clr	3,x
+ 230 0153 FC 00 00    		ldd	toc2_interrupt_count
+ 231 0156 1A 83 00 13 		cpd	#19
+ 232 015a 22 09       		bhi	.L20
+ 233 015c FE 00 00    		ldx	toc2_interrupt_count
+ 234 015f 08          		inx
+ 235 0160 FF 00 00    		stx	toc2_interrupt_count
+ 236 0163 20 0A       		bra	.L21
+ 237                 	.L20:
+ 238 0165 C6 01       		ldab	#1
+ 239 0167 E7 03       		stab	3,x
+ 240 0169 7F 00 01    		clr	toc2_interrupt_count+1
+ 241 016c 7F 00 00    		clr	toc2_interrupt_count
+ 242                 	.L21:
+ 243 016f CE 10 18    		ldx	#4120
+ 244 0172 EC 00       		ldd	0,x
+ 245 0174 C3 EA 60    		addd	#-5536
+ 246 0177 ED 00       		std	0,x
+ 247 0179 CE 10 23    		ldx	#4131
+ 248 017c 1C 00 40    		bset	0,x, #64
+ 249                 	; Begin inline assembler code
+ 250                 	#APP
+ 251 017f 0E          		cli
+ 252                 	; End of inline assembler code
+ 253                 	#NO_APP
+ 254 0180 30          		tsx
+ 255 0181 E6 03       		ldab	3,x
+ 256 0183 26 03 7E 00 		beq	.L19
+ 256      00 
+ 257 0188 6F 02       		clr	2,x
+ 258 018a E6 02       		ldab	2,x
+ 259 018c C1 01       		cmpb	#1
+ 260 018e 23 03 7E 00 		bhi	.L19
+ 260      00 
+ 261                 	.L28:
+ 262 0193 18 30       		tsy
+ 263 0195 18 E6 02    		ldab	2,y
+ 264 0198 4F          		clra
+ 265 0199 05          		asld
+ 266 019a 05          		asld
+ 267 019b 05          		asld
+ 268 019c C3 00 02    		addd	#tasks+2
+ 269 019f 8F          		xgdx
+ 270 01a0 18 E6 02    		ldab	2,y
+ 271 01a3 4F          		clra
+ 272 01a4 05          		asld
+ 273 01a5 05          		asld
+ 274 01a6 05          		asld
+ 275 01a7 C3 00 00    		addd	#tasks
+ 276 01aa EE 00       		ldx	0,x
+ 277 01ac 18 8F       		xgdy
+ 278 01ae 18 EC 00    		ldd	0,y
+ 279 01b1 DD 00       		std	*_.tmp
+ 280 01b3 9C 00       		cpx	*_.tmp
+ 281 01b5 24 03 7E 00 		blo	.L27
+ 281      00 
+ 282 01ba F6 00 00    		ldab	current_task_index
 M68HC11 GAS  soft.s 			page 6
 
 
- 277                 	toc2_isr:
- 278 0152 DE 00       		ldx	*_.tmp
- 279 0154 3C          		pshx
- 280 0155 DE 00       		ldx	*_.z
- 281 0157 3C          		pshx
- 282 0158 DE 00       		ldx	*_.xy
- 283 015a 3C          		pshx
- 284 015b 3C          		pshx
- 285 015c 3C          		pshx
- 286 015d 34          		des
- 287 015e DE 00       		ldx	*_.d1
- 288 0160 3C          		pshx
- 289 0161 30          		tsx
- 290 0162 6F 03       		clr	3,x
- 291 0164 FC 00 00    		ldd	toc2_interrupt_count
- 292 0167 1A 83 00 13 		cpd	#19
- 293 016b 22 09       		bhi	.L20
- 294 016d FE 00 00    		ldx	toc2_interrupt_count
- 295 0170 08          		inx
- 296 0171 FF 00 00    		stx	toc2_interrupt_count
- 297 0174 20 0A       		bra	.L21
- 298                 	.L20:
- 299 0176 C6 01       		ldab	#1
- 300 0178 E7 03       		stab	3,x
- 301 017a 7F 00 01    		clr	toc2_interrupt_count+1
- 302 017d 7F 00 00    		clr	toc2_interrupt_count
- 303                 	.L21:
- 304 0180 CE 10 18    		ldx	#4120
- 305 0183 EC 00       		ldd	0,x
- 306 0185 C3 EA 60    		addd	#-5536
- 307 0188 ED 00       		std	0,x
- 308 018a CE 10 23    		ldx	#4131
- 309 018d 1C 00 40    		bset	0,x, #64
- 310                 	; Begin inline assembler code
- 311                 	#APP
- 312 0190 0E          		cli
- 313                 	; End of inline assembler code
- 314                 	#NO_APP
- 315 0191 30          		tsx
- 316 0192 E6 03       		ldab	3,x
- 317 0194 26 03 7E 00 		beq	.L19
- 317      00 
- 318 0199 6F 02       		clr	2,x
- 319 019b E6 02       		ldab	2,x
- 320 019d C1 01       		cmpb	#1
- 321 019f 23 03 7E 00 		bhi	.L19
- 321      00 
- 322                 	.L28:
- 323 01a4 18 30       		tsy
- 324 01a6 18 E6 02    		ldab	2,y
- 325 01a9 4F          		clra
- 326 01aa 05          		asld
- 327 01ab 05          		asld
- 328 01ac 05          		asld
- 329 01ad C3 00 02    		addd	#tasks+2
- 330 01b0 8F          		xgdx
- 331 01b1 18 E6 02    		ldab	2,y
+ 283 01bd CE 00 00    		ldx	#running_tasks
+ 284 01c0 3A          		abx
+ 285 01c1 E6 00       		ldab	0,x
+ 286 01c3 D7 01       		stab	*_.d1+1
+ 287 01c5 18 30       		tsy
+ 288 01c7 18 E6 02    		ldab	2,y
+ 289 01ca D1 01       		cmpb	*_.d1+1
+ 290 01cc 25 03 7E 00 		bhs	.L27
+ 290      00 
+ 291 01d1 18 E6 02    		ldab	2,y
+ 292 01d4 4F          		clra
+ 293 01d5 05          		asld
+ 294 01d6 05          		asld
+ 295 01d7 05          		asld
+ 296 01d8 C3 00 05    		addd	#tasks+5
+ 297 01db 18 8F       		xgdy
+ 298 01dd 18 E6 00    		ldab	0,y
+ 299 01e0 30          		tsx
+ 300 01e1 E7 04       		stab	4,x
+ 301 01e3 27 03 7E 00 		bne	.L27
+ 301      00 
+ 302                 	; Begin inline assembler code
+ 303                 	#APP
+ 304 01e8 0F          		sei
+ 305                 	; End of inline assembler code
+ 306                 	#NO_APP
+ 307 01e9 E6 02       		ldab	2,x
+ 308 01eb 4F          		clra
+ 309 01ec 05          		asld
+ 310 01ed 05          		asld
+ 311 01ee 05          		asld
+ 312 01ef C3 00 02    		addd	#tasks+2
+ 313 01f2 18 8F       		xgdy
+ 314 01f4 18 6F 01    		clr	1,y
+ 315 01f7 18 6F 00    		clr	0,y
+ 316 01fa E6 02       		ldab	2,x
+ 317 01fc 4F          		clra
+ 318 01fd 05          		asld
+ 319 01fe 05          		asld
+ 320 01ff 05          		asld
+ 321 0200 C3 00 05    		addd	#tasks+5
+ 322 0203 18 8F       		xgdy
+ 323 0205 C6 01       		ldab	#1
+ 324 0207 18 E7 00    		stab	0,y
+ 325 020a F6 00 00    		ldab	current_task_index
+ 326 020d 5C          		incb
+ 327 020e F7 00 00    		stab	current_task_index
+ 328 0211 F6 00 00    		ldab	current_task_index
+ 329 0214 CE 00 00    		ldx	#running_tasks
+ 330 0217 3A          		abx
+ 331 0218 18 30       		tsy
+ 332 021a 18 E6 02    		ldab	2,y
+ 333 021d E7 00       		stab	0,x
+ 334                 	; Begin inline assembler code
+ 335                 	#APP
+ 336 021f 0E          		cli
+ 337                 	; End of inline assembler code
 M68HC11 GAS  soft.s 			page 7
 
 
- 332 01b4 4F          		clra
- 333 01b5 05          		asld
- 334 01b6 05          		asld
- 335 01b7 05          		asld
- 336 01b8 C3 00 00    		addd	#tasks
- 337 01bb EE 00       		ldx	0,x
- 338 01bd 18 8F       		xgdy
- 339 01bf 18 EC 00    		ldd	0,y
- 340 01c2 DD 00       		std	*_.tmp
- 341 01c4 9C 00       		cpx	*_.tmp
- 342 01c6 24 03 7E 00 		blo	.L27
- 342      00 
- 343 01cb F6 00 00    		ldab	current_task_index
- 344 01ce CE 00 00    		ldx	#running_tasks
- 345 01d1 3A          		abx
- 346 01d2 E6 00       		ldab	0,x
- 347 01d4 D7 01       		stab	*_.d1+1
- 348 01d6 18 30       		tsy
- 349 01d8 18 E6 02    		ldab	2,y
- 350 01db D1 01       		cmpb	*_.d1+1
- 351 01dd 25 03 7E 00 		bhs	.L27
- 351      00 
- 352 01e2 18 E6 02    		ldab	2,y
- 353 01e5 4F          		clra
- 354 01e6 05          		asld
- 355 01e7 05          		asld
- 356 01e8 05          		asld
- 357 01e9 C3 00 05    		addd	#tasks+5
- 358 01ec 18 8F       		xgdy
- 359 01ee 18 E6 00    		ldab	0,y
- 360 01f1 30          		tsx
- 361 01f2 E7 04       		stab	4,x
- 362 01f4 27 03 7E 00 		bne	.L27
- 362      00 
- 363                 	; Begin inline assembler code
- 364                 	#APP
- 365 01f9 0F          		sei
- 366                 	; End of inline assembler code
- 367                 	#NO_APP
- 368 01fa E6 02       		ldab	2,x
- 369 01fc 4F          		clra
- 370 01fd 05          		asld
- 371 01fe 05          		asld
- 372 01ff 05          		asld
- 373 0200 C3 00 02    		addd	#tasks+2
- 374 0203 18 8F       		xgdy
- 375 0205 18 6F 01    		clr	1,y
- 376 0208 18 6F 00    		clr	0,y
- 377 020b E6 02       		ldab	2,x
- 378 020d 4F          		clra
- 379 020e 05          		asld
- 380 020f 05          		asld
- 381 0210 05          		asld
- 382 0211 C3 00 05    		addd	#tasks+5
- 383 0214 18 8F       		xgdy
- 384 0216 C6 01       		ldab	#1
- 385 0218 18 E7 00    		stab	0,y
+ 338                 	#NO_APP
+ 339 0220 18 E6 02    		ldab	2,y
+ 340 0223 4F          		clra
+ 341 0224 05          		asld
+ 342 0225 05          		asld
+ 343 0226 05          		asld
+ 344 0227 C3 00 04    		addd	#tasks+4
+ 345 022a 18 ED 05    		std	5,y
+ 346 022d 18 E6 02    		ldab	2,y
+ 347 0230 4F          		clra
+ 348 0231 05          		asld
+ 349 0232 05          		asld
+ 350 0233 05          		asld
+ 351 0234 C3 00 06    		addd	#tasks+6
+ 352 0237 8F          		xgdx
+ 353 0238 18 E6 02    		ldab	2,y
+ 354 023b 4F          		clra
+ 355 023c 05          		asld
+ 356 023d 05          		asld
+ 357 023e 05          		asld
+ 358 023f C3 00 04    		addd	#tasks+4
+ 359 0242 18 8F       		xgdy
+ 360 0244 18 E6 00    		ldab	0,y
+ 361 0247 4F          		clra
+ 362 0248 EE 00       		ldx	0,x
+ 363 024a AD 00       		jsr	0,x
+ 364 024c 30          		tsx
+ 365 024d EE 05       		ldx	5,x
+ 366 024f E7 00       		stab	0,x
+ 367                 	; Begin inline assembler code
+ 368                 	#APP
+ 369 0251 0F          		sei
+ 370                 	; End of inline assembler code
+ 371                 	#NO_APP
+ 372 0252 18 30       		tsy
+ 373 0254 18 E6 02    		ldab	2,y
+ 374 0257 4F          		clra
+ 375 0258 05          		asld
+ 376 0259 05          		asld
+ 377 025a 05          		asld
+ 378 025b C3 00 05    		addd	#tasks+5
+ 379 025e 18 8F       		xgdy
+ 380 0260 30          		tsx
+ 381 0261 E6 04       		ldab	4,x
+ 382 0263 18 E7 00    		stab	0,y
+ 383 0266 F6 00 00    		ldab	current_task_index
+ 384 0269 CE 00 00    		ldx	#running_tasks
+ 385 026c 3A          		abx
+ 386 026d C6 FF       		ldab	#-1
+ 387 026f E7 00       		stab	0,x
+ 388 0271 F6 00 00    		ldab	current_task_index
+ 389 0274 5A          		decb
+ 390 0275 F7 00 00    		stab	current_task_index
+ 391                 	; Begin inline assembler code
+ 392                 	#APP
+ 393 0278 0E          		cli
+ 394                 	; End of inline assembler code
 M68HC11 GAS  soft.s 			page 8
 
 
- 386 021b F6 00 00    		ldab	current_task_index
- 387 021e 5C          		incb
- 388 021f F7 00 00    		stab	current_task_index
- 389 0222 F6 00 00    		ldab	current_task_index
- 390 0225 CE 00 00    		ldx	#running_tasks
- 391 0228 3A          		abx
- 392 0229 18 30       		tsy
- 393 022b 18 E6 02    		ldab	2,y
- 394 022e E7 00       		stab	0,x
- 395                 	; Begin inline assembler code
- 396                 	#APP
- 397 0230 0E          		cli
- 398                 	; End of inline assembler code
- 399                 	#NO_APP
- 400 0231 18 E6 02    		ldab	2,y
- 401 0234 4F          		clra
- 402 0235 05          		asld
- 403 0236 05          		asld
- 404 0237 05          		asld
- 405 0238 C3 00 04    		addd	#tasks+4
- 406 023b 18 ED 05    		std	5,y
- 407 023e 18 E6 02    		ldab	2,y
- 408 0241 4F          		clra
- 409 0242 05          		asld
- 410 0243 05          		asld
- 411 0244 05          		asld
- 412 0245 C3 00 06    		addd	#tasks+6
- 413 0248 8F          		xgdx
- 414 0249 18 E6 02    		ldab	2,y
- 415 024c 4F          		clra
- 416 024d 05          		asld
- 417 024e 05          		asld
- 418 024f 05          		asld
- 419 0250 C3 00 04    		addd	#tasks+4
- 420 0253 18 8F       		xgdy
- 421 0255 18 E6 00    		ldab	0,y
- 422 0258 4F          		clra
- 423 0259 EE 00       		ldx	0,x
- 424 025b AD 00       		jsr	0,x
- 425 025d 30          		tsx
- 426 025e EE 05       		ldx	5,x
- 427 0260 E7 00       		stab	0,x
- 428                 	; Begin inline assembler code
- 429                 	#APP
- 430 0262 0F          		sei
- 431                 	; End of inline assembler code
- 432                 	#NO_APP
- 433 0263 18 30       		tsy
- 434 0265 18 E6 02    		ldab	2,y
- 435 0268 4F          		clra
- 436 0269 05          		asld
- 437 026a 05          		asld
- 438 026b 05          		asld
- 439 026c C3 00 05    		addd	#tasks+5
- 440 026f 18 8F       		xgdy
- 441 0271 30          		tsx
- 442 0272 E6 04       		ldab	4,x
-M68HC11 GAS  soft.s 			page 9
-
-
- 443 0274 18 E7 00    		stab	0,y
- 444 0277 F6 00 00    		ldab	current_task_index
- 445 027a CE 00 00    		ldx	#running_tasks
- 446 027d 3A          		abx
- 447 027e C6 FF       		ldab	#-1
- 448 0280 E7 00       		stab	0,x
- 449 0282 F6 00 00    		ldab	current_task_index
- 450 0285 5A          		decb
- 451 0286 F7 00 00    		stab	current_task_index
- 452                 	; Begin inline assembler code
- 453                 	#APP
- 454 0289 0E          		cli
- 455                 	; End of inline assembler code
- 456                 	#NO_APP
- 457                 	.L27:
- 458 028a 18 30       		tsy
- 459 028c 18 E6 02    		ldab	2,y
- 460 028f 4F          		clra
- 461 0290 05          		asld
- 462 0291 05          		asld
- 463 0292 05          		asld
- 464 0293 C3 00 02    		addd	#tasks+2
- 465 0296 8F          		xgdx
- 466 0297 EC 00       		ldd	0,x
- 467 0299 C3 00 14    		addd	#20
- 468 029c ED 00       		std	0,x
- 469 029e 18 E6 02    		ldab	2,y
- 470 02a1 5C          		incb
- 471 02a2 18 E7 02    		stab	2,y
- 472 02a5 18 E6 02    		ldab	2,y
- 473 02a8 C1 01       		cmpb	#1
- 474 02aa 22 03 7E 00 		bls	.L28
- 474      00 
- 475                 	.L19:
- 476 02af 38          		pulx
- 477 02b0 DF 00       		stx	*_.d1
- 478 02b2 38          		pulx
- 479 02b3 38          		pulx
- 480 02b4 31          		ins
- 481 02b5 38          		pulx
- 482 02b6 DF 00       		stx	*_.xy
- 483 02b8 38          		pulx
- 484 02b9 DF 00       		stx	*_.z
- 485 02bb 38          		pulx
- 486 02bc DF 00       		stx	*_.tmp
- 487 02be 3B          		rti
- 488                 		.size	toc2_isr, .-toc2_isr
- 489                 		.comm	tasks,16,1
- 490                 		.comm	rev_temp,100,1
- 491                 		.ident	"GCC: (GNU) 3.3.6-m68hc1x-20060122"
+ 395                 	#NO_APP
+ 396                 	.L27:
+ 397 0279 18 30       		tsy
+ 398 027b 18 E6 02    		ldab	2,y
+ 399 027e 4F          		clra
+ 400 027f 05          		asld
+ 401 0280 05          		asld
+ 402 0281 05          		asld
+ 403 0282 C3 00 02    		addd	#tasks+2
+ 404 0285 8F          		xgdx
+ 405 0286 EC 00       		ldd	0,x
+ 406 0288 C3 00 14    		addd	#20
+ 407 028b ED 00       		std	0,x
+ 408 028d 18 E6 02    		ldab	2,y
+ 409 0290 5C          		incb
+ 410 0291 18 E7 02    		stab	2,y
+ 411 0294 18 E6 02    		ldab	2,y
+ 412 0297 C1 01       		cmpb	#1
+ 413 0299 22 03 7E 00 		bls	.L28
+ 413      00 
+ 414                 	.L19:
+ 415 029e 38          		pulx
+ 416 029f DF 00       		stx	*_.d1
+ 417 02a1 38          		pulx
+ 418 02a2 38          		pulx
+ 419 02a3 31          		ins
+ 420 02a4 38          		pulx
+ 421 02a5 DF 00       		stx	*_.xy
+ 422 02a7 38          		pulx
+ 423 02a8 DF 00       		stx	*_.z
+ 424 02aa 38          		pulx
+ 425 02ab DF 00       		stx	*_.tmp
+ 426 02ad 3B          		rti
+ 427                 		.size	toc2_isr, .-toc2_isr
+ 428                 		.comm	tasks,16,1
+ 429                 		.ident	"GCC: (GNU) 3.3.6-m68hc1x-20060122"
    1                 	;===================
    2                 	; soft registers
    3                 	;===================
@@ -538,16 +464,13 @@ M68HC11 GAS  soft.s 			page 1
    5                 	.global _.d1
    6                 	_.d1: .word
    7                 	.global _.tmp
-M68HC11 GAS  soft.s 			page 10
-
-
    8                 	_.tmp: .word
    9                 	.global _.z
   10                 	_.z: .word
   11                 	.global _.xy
   12                 	_.xy: .word
   13                 	
-M68HC11 GAS  soft.s 			page 11
+M68HC11 GAS  soft.s 			page 9
 
 
 DEFINED SYMBOLS
@@ -556,393 +479,377 @@ DEFINED SYMBOLS
               main.s:14     .data:0000000000000000 toc2_interrupt_count
               main.s:19     .data:0000000000000002 running_tasks
               main.s:25     .data:0000000000000006 current_task_index
-              main.s:30     .data:0000000000000007 t1
-              main.s:36     .data:0000000000000011 t2
-              main.s:42     .data:000000000000001b t3
-              main.s:48     .data:0000000000000025 t4
-              main.s:54     .data:000000000000002f t5
-              main.s:60     .data:0000000000000039 t6
-              main.s:66     .data:0000000000000043 t7
-              main.s:72     .data:000000000000004d t8
-              main.s:78     .data:0000000000000057 t9
-              main.s:87     .text:0000000000000000 _start
-              main.s:88     .text:0000000000000000 L0L0
-              main.s:91     .text:0000000000000001 L0L1
-              main.s:94     .text:0000000000000002 L0L2
-              main.s:95     .text:0000000000000003 L0L3
-              main.s:96     .text:0000000000000005 L0L4
-              main.s:97     .text:0000000000000007 L0L5
-              main.s:98     .text:0000000000000008 L0L6
-              main.s:99     .text:0000000000000009 L0L7
-              main.s:100    .text:000000000000000a L0L8
-              main.s:101    .text:000000000000000b L0L9
+              main.s:33     .text:0000000000000000 _start
+              main.s:34     .text:0000000000000000 L0L0
+              main.s:37     .text:0000000000000001 L0L1
+              main.s:40     .text:0000000000000002 L0L2
+              main.s:41     .text:0000000000000003 L0L3
+              main.s:42     .text:0000000000000005 L0L4
+              main.s:43     .text:0000000000000007 L0L5
+              main.s:44     .text:0000000000000008 L0L6
+              main.s:45     .text:0000000000000009 L0L7
+              main.s:46     .text:000000000000000a L0L8
+              main.s:47     .text:000000000000000b L0L9
                             *COM*:0000000000000010 tasks
-              main.s:102    .text:000000000000000e L0L10
-              main.s:103    .text:0000000000000011 L0L11
-              main.s:104    .text:0000000000000013 L0L12
-              main.s:105    .text:0000000000000016 L0L13
-              main.s:106    .text:0000000000000018 L0L14
-              main.s:107    .text:000000000000001b L0L15
-              main.s:108    .text:000000000000001c L0L16
-              main.s:109    .text:000000000000001d L0L17
-              main.s:110    .text:000000000000001e L0L18
-              main.s:111    .text:000000000000001f L0L19
-              main.s:112    .text:0000000000000022 L0L20
-              main.s:113    .text:0000000000000024 L0L21
-              main.s:114    .text:0000000000000027 L0L22
-              main.s:115    .text:0000000000000028 L0L23
-              main.s:116    .text:000000000000002a L0L24
-              main.s:117    .text:000000000000002b L0L25
-              main.s:118    .text:000000000000002c L0L26
-              main.s:119    .text:000000000000002d L0L27
-              main.s:120    .text:000000000000002e L0L28
-              main.s:121    .text:0000000000000031 L0L29
-              main.s:122    .text:0000000000000033 L0L30
-              main.s:123    .text:0000000000000035 L0L31
-              main.s:124    .text:0000000000000038 L0L32
-              main.s:125    .text:000000000000003a L0L33
-              main.s:126    .text:000000000000003b L0L34
-              main.s:127    .text:000000000000003c L0L35
-              main.s:128    .text:000000000000003d L0L36
-              main.s:129    .text:000000000000003e L0L37
-              main.s:130    .text:0000000000000041 L0L38
-              main.s:131    .text:0000000000000043 L0L39
+              main.s:48     .text:000000000000000e L0L10
+              main.s:49     .text:0000000000000011 L0L11
+              main.s:50     .text:0000000000000013 L0L12
+              main.s:51     .text:0000000000000016 L0L13
+              main.s:52     .text:0000000000000018 L0L14
+              main.s:53     .text:000000000000001b L0L15
+              main.s:54     .text:000000000000001c L0L16
+              main.s:55     .text:000000000000001d L0L17
+              main.s:56     .text:000000000000001e L0L18
+              main.s:57     .text:000000000000001f L0L19
+              main.s:58     .text:0000000000000022 L0L20
+              main.s:59     .text:0000000000000024 L0L21
+              main.s:60     .text:0000000000000027 L0L22
+              main.s:61     .text:0000000000000028 L0L23
+              main.s:62     .text:000000000000002a L0L24
+              main.s:63     .text:000000000000002b L0L25
+              main.s:64     .text:000000000000002c L0L26
+              main.s:65     .text:000000000000002d L0L27
+              main.s:66     .text:000000000000002e L0L28
+              main.s:67     .text:0000000000000031 L0L29
+              main.s:68     .text:0000000000000033 L0L30
+              main.s:69     .text:0000000000000035 L0L31
+              main.s:70     .text:0000000000000038 L0L32
+              main.s:71     .text:000000000000003a L0L33
+              main.s:72     .text:000000000000003b L0L34
+              main.s:73     .text:000000000000003c L0L35
+              main.s:74     .text:000000000000003d L0L36
+              main.s:75     .text:000000000000003e L0L37
+              main.s:76     .text:0000000000000041 L0L38
+              main.s:77     .text:0000000000000043 L0L39
+              main.s:78     .text:0000000000000046 L0L40
+              main.s:79     .text:0000000000000048 L0L41
+              main.s:80     .text:0000000000000049 L0L42
+              main.s:81     .text:000000000000004a L0L43
+              main.s:82     .text:000000000000004b L0L44
+              main.s:83     .text:000000000000004c L0L45
+              main.s:84     .text:000000000000004f L0L46
+              main.s:189    .text:0000000000000110 sequence_tsk_tick_func
+              main.s:85     .text:0000000000000053 L0L47
+M68HC11 GAS  soft.s 			page 10
+
+
+              main.s:86     .text:0000000000000054 L0L48
+              main.s:87     .text:0000000000000057 L0L49
+              main.s:88     .text:0000000000000058 L0L50
+              main.s:89     .text:000000000000005a L0L51
+              main.s:90     .text:000000000000005b L0L52
+              main.s:91     .text:000000000000005d L0L53
+              main.s:92     .text:0000000000000060 L0L54
+              main.s:93     .text:0000000000000063 L0L55
+              main.s:94     .text:0000000000000065 L0L56
+              main.s:95     .text:0000000000000068 L0L57
+              main.s:96     .text:0000000000000069 L0L58
+              main.s:97     .text:000000000000006a L0L59
+              main.s:98     .text:000000000000006b L0L60
+              main.s:99     .text:000000000000006c L0L61
+              main.s:100    .text:000000000000006f L0L62
+              main.s:101    .text:0000000000000073 L0L63
+              main.s:102    .text:0000000000000074 L0L64
+              main.s:103    .text:0000000000000077 L0L65
+              main.s:104    .text:0000000000000078 L0L66
+              main.s:105    .text:000000000000007a L0L67
+              main.s:106    .text:000000000000007b L0L68
+              main.s:107    .text:000000000000007c L0L69
+              main.s:108    .text:000000000000007d L0L70
+              main.s:109    .text:000000000000007e L0L71
+              main.s:110    .text:0000000000000081 L0L72
+              main.s:111    .text:0000000000000082 L0L73
+              main.s:112    .text:0000000000000085 L0L74
+              main.s:113    .text:0000000000000087 L0L75
+              main.s:114    .text:000000000000008a L0L76
+              main.s:115    .text:000000000000008b L0L77
+              main.s:116    .text:000000000000008c L0L78
+              main.s:117    .text:000000000000008d L0L79
+              main.s:118    .text:000000000000008e L0L80
+              main.s:119    .text:0000000000000091 L0L81
+              main.s:120    .text:0000000000000092 L0L82
+              main.s:121    .text:0000000000000094 L0L83
+              main.s:122    .text:0000000000000097 L0L84
+              main.s:123    .text:0000000000000098 L0L85
+              main.s:124    .text:0000000000000099 L0L86
+              main.s:125    .text:000000000000009a L0L87
+              main.s:126    .text:000000000000009b L0L88
+              main.s:127    .text:000000000000009e L0L89
+              main.s:128    .text:00000000000000a0 L0L90
+              main.s:129    .text:00000000000000a3 L0L91
+              main.s:130    .text:00000000000000a4 L0L92
+              main.s:131    .text:00000000000000a6 L0L93
+              main.s:132    .text:00000000000000a7 L0L94
+              main.s:133    .text:00000000000000a8 L0L95
+              main.s:134    .text:00000000000000a9 L0L96
+              main.s:135    .text:00000000000000aa L0L97
+              main.s:136    .text:00000000000000ad L0L98
+              main.s:170    .text:00000000000000f1 toggle_tsk_tick_func
+              main.s:137    .text:00000000000000b0 L0L99
+              main.s:138    .text:00000000000000b2 L0L100
+              main.s:139    .text:00000000000000b5 L0L101
+              main.s:140    .text:00000000000000b7 L0L102
+              main.s:141    .text:00000000000000ba L0L103
+M68HC11 GAS  soft.s 			page 11
+
+
+              main.s:142    .text:00000000000000bb L0L104
+              main.s:143    .text:00000000000000be L0L105
+              main.s:144    .text:00000000000000c1 L0L106
+              main.s:145    .text:00000000000000c3 L0L107
+              main.s:146    .text:00000000000000c5 L0L108
+              main.s:147    .text:00000000000000c8 L0L109
+              main.s:216    .text:0000000000000141 toc2_isr
+              main.s:148    .text:00000000000000cc L0L110
+              main.s:149    .text:00000000000000cf L0L111
+              main.s:150    .text:00000000000000d2 L0L112
+              main.s:151    .text:00000000000000d5 L0L113
+              main.s:152    .text:00000000000000d8 L0L114
+              main.s:153    .text:00000000000000db L0L115
+              main.s:154    .text:00000000000000de L0L116
+              main.s:155    .text:00000000000000e0 L0L117
+              main.s:156    .text:00000000000000e3 L0L118
+              main.s:157    .text:00000000000000e6 L0L119
+              main.s:158    .text:00000000000000e8 L0L120
+              main.s:159    .text:00000000000000eb L0L121
+              main.s:162    .text:00000000000000ee L0L122
+              main.s:166    .text:00000000000000ef L0L123
+              main.s:171    .text:00000000000000f1 L0L124
+              soft.s:8      softregs:0000000000000000 _.tmp
+              main.s:172    .text:00000000000000f3 L0L125
+              main.s:173    .text:00000000000000f5 L0L126
+              main.s:174    .text:00000000000000f9 L0L127
+              main.s:176    .text:00000000000000fb L0L128
+              main.s:178    .text:00000000000000ff L0L129
+              main.s:179    .text:0000000000000102 L0L130
+              main.s:180    .text:0000000000000104 L0L131
+              main.s:181    .text:0000000000000106 L0L132
+              main.s:182    .text:0000000000000109 L0L133
+              main.s:183    .text:000000000000010b L0L134
+              main.s:184    .text:000000000000010d L0L135
+              main.s:185    .text:000000000000010f L0L136
+              main.s:190    .text:0000000000000110 L0L137
+              main.s:191    .text:0000000000000112 L0L138
+              main.s:192    .text:0000000000000116 L0L139
+              main.s:193    .text:0000000000000118 L0L140
+              main.s:194    .text:000000000000011a L0L141
+              main.s:195    .text:000000000000011e L0L142
+              main.s:196    .text:0000000000000120 L0L143
+              main.s:197    .text:0000000000000124 L0L144
+              main.s:199    .text:0000000000000126 L0L145
+              main.s:200    .text:000000000000012a L0L146
+              main.s:202    .text:000000000000012c L0L147
+              main.s:204    .text:0000000000000130 L0L148
+              main.s:205    .text:0000000000000133 L0L149
+              main.s:206    .text:0000000000000135 L0L150
+              main.s:207    .text:0000000000000137 L0L151
+              main.s:208    .text:000000000000013a L0L152
+              main.s:209    .text:000000000000013c L0L153
+              main.s:210    .text:000000000000013e L0L154
+              main.s:211    .text:0000000000000140 L0L155
+              main.s:217    .text:0000000000000141 L0L156
+              main.s:218    .text:0000000000000143 L0L157
+              main.s:219    .text:0000000000000144 L0L158
 M68HC11 GAS  soft.s 			page 12
 
 
-              main.s:132    .text:0000000000000046 L0L40
-              main.s:133    .text:0000000000000048 L0L41
-              main.s:134    .text:0000000000000049 L0L42
-              main.s:135    .text:000000000000004a L0L43
-              main.s:136    .text:000000000000004b L0L44
-              main.s:137    .text:000000000000004c L0L45
-              main.s:138    .text:000000000000004f L0L46
-              main.s:246    .text:0000000000000119 sequence_tsk_tick_func
-              main.s:139    .text:0000000000000053 L0L47
-              main.s:140    .text:0000000000000054 L0L48
-              main.s:141    .text:0000000000000057 L0L49
-              main.s:142    .text:0000000000000058 L0L50
-              main.s:143    .text:000000000000005a L0L51
-              main.s:144    .text:000000000000005b L0L52
-              main.s:145    .text:000000000000005d L0L53
-              main.s:146    .text:0000000000000060 L0L54
-              main.s:147    .text:0000000000000063 L0L55
-              main.s:148    .text:0000000000000065 L0L56
-              main.s:149    .text:0000000000000068 L0L57
-              main.s:150    .text:0000000000000069 L0L58
-              main.s:151    .text:000000000000006a L0L59
-              main.s:152    .text:000000000000006b L0L60
-              main.s:153    .text:000000000000006c L0L61
-              main.s:154    .text:000000000000006f L0L62
-              main.s:155    .text:0000000000000073 L0L63
-              main.s:156    .text:0000000000000074 L0L64
-              main.s:157    .text:0000000000000077 L0L65
-              main.s:158    .text:0000000000000078 L0L66
-              main.s:159    .text:000000000000007a L0L67
-              main.s:160    .text:000000000000007b L0L68
-              main.s:161    .text:000000000000007c L0L69
-              main.s:162    .text:000000000000007d L0L70
-              main.s:163    .text:000000000000007e L0L71
-              main.s:164    .text:0000000000000081 L0L72
-              main.s:165    .text:0000000000000082 L0L73
-              main.s:166    .text:0000000000000085 L0L74
-              main.s:167    .text:0000000000000087 L0L75
-              main.s:168    .text:000000000000008a L0L76
-              main.s:169    .text:000000000000008b L0L77
-              main.s:170    .text:000000000000008c L0L78
-              main.s:171    .text:000000000000008d L0L79
-              main.s:172    .text:000000000000008e L0L80
-              main.s:173    .text:0000000000000091 L0L81
-              main.s:174    .text:0000000000000092 L0L82
-              main.s:175    .text:0000000000000094 L0L83
-              main.s:176    .text:0000000000000097 L0L84
-              main.s:177    .text:0000000000000098 L0L85
-              main.s:178    .text:0000000000000099 L0L86
-              main.s:179    .text:000000000000009a L0L87
-              main.s:180    .text:000000000000009b L0L88
-              main.s:181    .text:000000000000009e L0L89
-              main.s:182    .text:00000000000000a0 L0L90
-              main.s:183    .text:00000000000000a3 L0L91
-              main.s:184    .text:00000000000000a4 L0L92
-              main.s:185    .text:00000000000000a6 L0L93
-              main.s:186    .text:00000000000000a7 L0L94
-              main.s:187    .text:00000000000000a8 L0L95
+              soft.s:10     softregs:0000000000000000 _.z
+              main.s:220    .text:0000000000000146 L0L159
+              main.s:221    .text:0000000000000147 L0L160
+              soft.s:12     softregs:0000000000000000 _.xy
+              main.s:222    .text:0000000000000149 L0L161
+              main.s:223    .text:000000000000014a L0L162
+              main.s:224    .text:000000000000014b L0L163
+              main.s:225    .text:000000000000014c L0L164
+              main.s:226    .text:000000000000014d L0L165
+              soft.s:6      softregs:0000000000000000 _.d1
+              main.s:227    .text:000000000000014f L0L166
+              main.s:228    .text:0000000000000150 L0L167
+              main.s:229    .text:0000000000000151 L0L168
+              main.s:230    .text:0000000000000153 L0L169
+              main.s:231    .text:0000000000000156 L0L170
+              main.s:232    .text:000000000000015a L0L171
+              main.s:233    .text:000000000000015c L0L172
+              main.s:234    .text:000000000000015f L0L173
+              main.s:235    .text:0000000000000160 L0L174
+              main.s:236    .text:0000000000000163 L0L175
+              main.s:238    .text:0000000000000165 L0L176
+              main.s:239    .text:0000000000000167 L0L177
+              main.s:240    .text:0000000000000169 L0L178
+              main.s:241    .text:000000000000016c L0L179
+              main.s:243    .text:000000000000016f L0L180
+              main.s:244    .text:0000000000000172 L0L181
+              main.s:245    .text:0000000000000174 L0L182
+              main.s:246    .text:0000000000000177 L0L183
+              main.s:247    .text:0000000000000179 L0L184
+              main.s:248    .text:000000000000017c L0L185
+              main.s:251    .text:000000000000017f L0L186
+              main.s:254    .text:0000000000000180 L0L187
+              main.s:255    .text:0000000000000181 L0L188
+              main.s:256    .text:0000000000000183 L0L189
+              main.s:257    .text:0000000000000188 L0L190
+              main.s:258    .text:000000000000018a L0L191
+              main.s:259    .text:000000000000018c L0L192
+              main.s:260    .text:000000000000018e L0L193
+              main.s:262    .text:0000000000000193 L0L194
+              main.s:263    .text:0000000000000195 L0L195
+              main.s:264    .text:0000000000000198 L0L196
+              main.s:265    .text:0000000000000199 L0L197
+              main.s:266    .text:000000000000019a L0L198
+              main.s:267    .text:000000000000019b L0L199
+              main.s:268    .text:000000000000019c L0L200
+              main.s:269    .text:000000000000019f L0L201
+              main.s:270    .text:00000000000001a0 L0L202
+              main.s:271    .text:00000000000001a3 L0L203
+              main.s:272    .text:00000000000001a4 L0L204
+              main.s:273    .text:00000000000001a5 L0L205
+              main.s:274    .text:00000000000001a6 L0L206
+              main.s:275    .text:00000000000001a7 L0L207
+              main.s:276    .text:00000000000001aa L0L208
+              main.s:277    .text:00000000000001ac L0L209
+              main.s:278    .text:00000000000001ae L0L210
+              main.s:279    .text:00000000000001b1 L0L211
+              main.s:280    .text:00000000000001b3 L0L212
 M68HC11 GAS  soft.s 			page 13
 
 
-              main.s:188    .text:00000000000000a9 L0L96
-              main.s:189    .text:00000000000000aa L0L97
-              main.s:190    .text:00000000000000ad L0L98
-              main.s:224    .text:00000000000000f1 toggle_tsk_tick_func
-              main.s:191    .text:00000000000000b0 L0L99
-              main.s:192    .text:00000000000000b2 L0L100
-              main.s:193    .text:00000000000000b5 L0L101
-              main.s:194    .text:00000000000000b7 L0L102
-              main.s:195    .text:00000000000000ba L0L103
-              main.s:196    .text:00000000000000bb L0L104
-              main.s:197    .text:00000000000000be L0L105
-              main.s:198    .text:00000000000000c1 L0L106
-              main.s:199    .text:00000000000000c3 L0L107
-              main.s:200    .text:00000000000000c5 L0L108
-              main.s:201    .text:00000000000000c8 L0L109
-              main.s:277    .text:0000000000000152 toc2_isr
-              main.s:202    .text:00000000000000cc L0L110
-              main.s:203    .text:00000000000000cf L0L111
-              main.s:204    .text:00000000000000d2 L0L112
-              main.s:205    .text:00000000000000d5 L0L113
-              main.s:206    .text:00000000000000d8 L0L114
-              main.s:207    .text:00000000000000db L0L115
-              main.s:208    .text:00000000000000de L0L116
-              main.s:209    .text:00000000000000e0 L0L117
-              main.s:210    .text:00000000000000e3 L0L118
-              main.s:211    .text:00000000000000e6 L0L119
-              main.s:212    .text:00000000000000e8 L0L120
-              main.s:213    .text:00000000000000eb L0L121
-              main.s:216    .text:00000000000000ee L0L122
-              main.s:220    .text:00000000000000ef L0L123
-              main.s:225    .text:00000000000000f1 L0L124
-              soft.s:8      softregs:0000000000000000 _.tmp
-              main.s:226    .text:00000000000000f3 L0L125
-              main.s:227    .text:00000000000000f6 L0L126
-              main.s:228    .text:00000000000000f8 L0L127
-              main.s:229    .text:00000000000000fc L0L128
-              main.s:230    .text:00000000000000fe L0L129
-              main.s:231    .text:0000000000000102 L0L130
-              main.s:233    .text:0000000000000104 L0L131
-              main.s:235    .text:0000000000000108 L0L132
-              main.s:236    .text:000000000000010b L0L133
-              main.s:237    .text:000000000000010d L0L134
-              main.s:238    .text:000000000000010f L0L135
-              main.s:239    .text:0000000000000112 L0L136
-              main.s:240    .text:0000000000000114 L0L137
-              main.s:241    .text:0000000000000116 L0L138
-              main.s:242    .text:0000000000000118 L0L139
-              main.s:247    .text:0000000000000119 L0L140
-              main.s:248    .text:000000000000011b L0L141
-              main.s:249    .text:000000000000011f L0L142
-              main.s:250    .text:0000000000000121 L0L143
-              main.s:251    .text:0000000000000123 L0L144
-              main.s:252    .text:0000000000000127 L0L145
-              main.s:253    .text:0000000000000129 L0L146
-              main.s:255    .text:000000000000012b L0L147
-              main.s:256    .text:000000000000012f L0L148
-              main.s:257    .text:0000000000000131 L0L149
+              main.s:281    .text:00000000000001b5 L0L213
+              main.s:282    .text:00000000000001ba L0L214
+              main.s:283    .text:00000000000001bd L0L215
+              main.s:284    .text:00000000000001c0 L0L216
+              main.s:285    .text:00000000000001c1 L0L217
+              main.s:286    .text:00000000000001c3 L0L218
+              main.s:287    .text:00000000000001c5 L0L219
+              main.s:288    .text:00000000000001c7 L0L220
+              main.s:289    .text:00000000000001ca L0L221
+              main.s:290    .text:00000000000001cc L0L222
+              main.s:291    .text:00000000000001d1 L0L223
+              main.s:292    .text:00000000000001d4 L0L224
+              main.s:293    .text:00000000000001d5 L0L225
+              main.s:294    .text:00000000000001d6 L0L226
+              main.s:295    .text:00000000000001d7 L0L227
+              main.s:296    .text:00000000000001d8 L0L228
+              main.s:297    .text:00000000000001db L0L229
+              main.s:298    .text:00000000000001dd L0L230
+              main.s:299    .text:00000000000001e0 L0L231
+              main.s:300    .text:00000000000001e1 L0L232
+              main.s:301    .text:00000000000001e3 L0L233
+              main.s:304    .text:00000000000001e8 L0L234
+              main.s:307    .text:00000000000001e9 L0L235
+              main.s:308    .text:00000000000001eb L0L236
+              main.s:309    .text:00000000000001ec L0L237
+              main.s:310    .text:00000000000001ed L0L238
+              main.s:311    .text:00000000000001ee L0L239
+              main.s:312    .text:00000000000001ef L0L240
+              main.s:313    .text:00000000000001f2 L0L241
+              main.s:314    .text:00000000000001f4 L0L242
+              main.s:315    .text:00000000000001f7 L0L243
+              main.s:316    .text:00000000000001fa L0L244
+              main.s:317    .text:00000000000001fc L0L245
+              main.s:318    .text:00000000000001fd L0L246
+              main.s:319    .text:00000000000001fe L0L247
+              main.s:320    .text:00000000000001ff L0L248
+              main.s:321    .text:0000000000000200 L0L249
+              main.s:322    .text:0000000000000203 L0L250
+              main.s:323    .text:0000000000000205 L0L251
+              main.s:324    .text:0000000000000207 L0L252
+              main.s:325    .text:000000000000020a L0L253
+              main.s:326    .text:000000000000020d L0L254
+              main.s:327    .text:000000000000020e L0L255
+              main.s:328    .text:0000000000000211 L0L256
+              main.s:329    .text:0000000000000214 L0L257
+              main.s:330    .text:0000000000000217 L0L258
+              main.s:331    .text:0000000000000218 L0L259
+              main.s:332    .text:000000000000021a L0L260
+              main.s:333    .text:000000000000021d L0L261
+              main.s:336    .text:000000000000021f L0L262
+              main.s:339    .text:0000000000000220 L0L263
+              main.s:340    .text:0000000000000223 L0L264
+              main.s:341    .text:0000000000000224 L0L265
+              main.s:342    .text:0000000000000225 L0L266
+              main.s:343    .text:0000000000000226 L0L267
+              main.s:344    .text:0000000000000227 L0L268
+              main.s:345    .text:000000000000022a L0L269
 M68HC11 GAS  soft.s 			page 14
 
 
-              main.s:258    .text:0000000000000135 L0L150
-              main.s:260    .text:0000000000000137 L0L151
-              main.s:261    .text:000000000000013b L0L152
-              main.s:263    .text:000000000000013d L0L153
-              main.s:265    .text:0000000000000141 L0L154
-              main.s:266    .text:0000000000000144 L0L155
-              main.s:267    .text:0000000000000146 L0L156
-              main.s:268    .text:0000000000000148 L0L157
-              main.s:269    .text:000000000000014b L0L158
-              main.s:270    .text:000000000000014d L0L159
-              main.s:271    .text:000000000000014f L0L160
-              main.s:272    .text:0000000000000151 L0L161
-              main.s:278    .text:0000000000000152 L0L162
-              main.s:279    .text:0000000000000154 L0L163
-              main.s:280    .text:0000000000000155 L0L164
-              soft.s:10     softregs:0000000000000000 _.z
-              main.s:281    .text:0000000000000157 L0L165
-              main.s:282    .text:0000000000000158 L0L166
-              soft.s:12     softregs:0000000000000000 _.xy
-              main.s:283    .text:000000000000015a L0L167
-              main.s:284    .text:000000000000015b L0L168
-              main.s:285    .text:000000000000015c L0L169
-              main.s:286    .text:000000000000015d L0L170
-              main.s:287    .text:000000000000015e L0L171
-              soft.s:6      softregs:0000000000000000 _.d1
-              main.s:288    .text:0000000000000160 L0L172
-              main.s:289    .text:0000000000000161 L0L173
-              main.s:290    .text:0000000000000162 L0L174
-              main.s:291    .text:0000000000000164 L0L175
-              main.s:292    .text:0000000000000167 L0L176
-              main.s:293    .text:000000000000016b L0L177
-              main.s:294    .text:000000000000016d L0L178
-              main.s:295    .text:0000000000000170 L0L179
-              main.s:296    .text:0000000000000171 L0L180
-              main.s:297    .text:0000000000000174 L0L181
-              main.s:299    .text:0000000000000176 L0L182
-              main.s:300    .text:0000000000000178 L0L183
-              main.s:301    .text:000000000000017a L0L184
-              main.s:302    .text:000000000000017d L0L185
-              main.s:304    .text:0000000000000180 L0L186
-              main.s:305    .text:0000000000000183 L0L187
-              main.s:306    .text:0000000000000185 L0L188
-              main.s:307    .text:0000000000000188 L0L189
-              main.s:308    .text:000000000000018a L0L190
-              main.s:309    .text:000000000000018d L0L191
-              main.s:312    .text:0000000000000190 L0L192
-              main.s:315    .text:0000000000000191 L0L193
-              main.s:316    .text:0000000000000192 L0L194
-              main.s:317    .text:0000000000000194 L0L195
-              main.s:318    .text:0000000000000199 L0L196
-              main.s:319    .text:000000000000019b L0L197
-              main.s:320    .text:000000000000019d L0L198
-              main.s:321    .text:000000000000019f L0L199
-              main.s:323    .text:00000000000001a4 L0L200
-              main.s:324    .text:00000000000001a6 L0L201
-              main.s:325    .text:00000000000001a9 L0L202
-              main.s:326    .text:00000000000001aa L0L203
+              main.s:346    .text:000000000000022d L0L270
+              main.s:347    .text:0000000000000230 L0L271
+              main.s:348    .text:0000000000000231 L0L272
+              main.s:349    .text:0000000000000232 L0L273
+              main.s:350    .text:0000000000000233 L0L274
+              main.s:351    .text:0000000000000234 L0L275
+              main.s:352    .text:0000000000000237 L0L276
+              main.s:353    .text:0000000000000238 L0L277
+              main.s:354    .text:000000000000023b L0L278
+              main.s:355    .text:000000000000023c L0L279
+              main.s:356    .text:000000000000023d L0L280
+              main.s:357    .text:000000000000023e L0L281
+              main.s:358    .text:000000000000023f L0L282
+              main.s:359    .text:0000000000000242 L0L283
+              main.s:360    .text:0000000000000244 L0L284
+              main.s:361    .text:0000000000000247 L0L285
+              main.s:362    .text:0000000000000248 L0L286
+              main.s:363    .text:000000000000024a L0L287
+              main.s:364    .text:000000000000024c L0L288
+              main.s:365    .text:000000000000024d L0L289
+              main.s:366    .text:000000000000024f L0L290
+              main.s:369    .text:0000000000000251 L0L291
+              main.s:372    .text:0000000000000252 L0L292
+              main.s:373    .text:0000000000000254 L0L293
+              main.s:374    .text:0000000000000257 L0L294
+              main.s:375    .text:0000000000000258 L0L295
+              main.s:376    .text:0000000000000259 L0L296
+              main.s:377    .text:000000000000025a L0L297
+              main.s:378    .text:000000000000025b L0L298
+              main.s:379    .text:000000000000025e L0L299
+              main.s:380    .text:0000000000000260 L0L300
+              main.s:381    .text:0000000000000261 L0L301
+              main.s:382    .text:0000000000000263 L0L302
+              main.s:383    .text:0000000000000266 L0L303
+              main.s:384    .text:0000000000000269 L0L304
+              main.s:385    .text:000000000000026c L0L305
+              main.s:386    .text:000000000000026d L0L306
+              main.s:387    .text:000000000000026f L0L307
+              main.s:388    .text:0000000000000271 L0L308
+              main.s:389    .text:0000000000000274 L0L309
+              main.s:390    .text:0000000000000275 L0L310
+              main.s:393    .text:0000000000000278 L0L311
+              main.s:397    .text:0000000000000279 L0L312
+              main.s:398    .text:000000000000027b L0L313
+              main.s:399    .text:000000000000027e L0L314
+              main.s:400    .text:000000000000027f L0L315
+              main.s:401    .text:0000000000000280 L0L316
+              main.s:402    .text:0000000000000281 L0L317
+              main.s:403    .text:0000000000000282 L0L318
+              main.s:404    .text:0000000000000285 L0L319
+              main.s:405    .text:0000000000000286 L0L320
+              main.s:406    .text:0000000000000288 L0L321
+              main.s:407    .text:000000000000028b L0L322
+              main.s:408    .text:000000000000028d L0L323
+              main.s:409    .text:0000000000000290 L0L324
+              main.s:410    .text:0000000000000291 L0L325
+              main.s:411    .text:0000000000000294 L0L326
 M68HC11 GAS  soft.s 			page 15
 
 
-              main.s:327    .text:00000000000001ab L0L204
-              main.s:328    .text:00000000000001ac L0L205
-              main.s:329    .text:00000000000001ad L0L206
-              main.s:330    .text:00000000000001b0 L0L207
-              main.s:331    .text:00000000000001b1 L0L208
-              main.s:332    .text:00000000000001b4 L0L209
-              main.s:333    .text:00000000000001b5 L0L210
-              main.s:334    .text:00000000000001b6 L0L211
-              main.s:335    .text:00000000000001b7 L0L212
-              main.s:336    .text:00000000000001b8 L0L213
-              main.s:337    .text:00000000000001bb L0L214
-              main.s:338    .text:00000000000001bd L0L215
-              main.s:339    .text:00000000000001bf L0L216
-              main.s:340    .text:00000000000001c2 L0L217
-              main.s:341    .text:00000000000001c4 L0L218
-              main.s:342    .text:00000000000001c6 L0L219
-              main.s:343    .text:00000000000001cb L0L220
-              main.s:344    .text:00000000000001ce L0L221
-              main.s:345    .text:00000000000001d1 L0L222
-              main.s:346    .text:00000000000001d2 L0L223
-              main.s:347    .text:00000000000001d4 L0L224
-              main.s:348    .text:00000000000001d6 L0L225
-              main.s:349    .text:00000000000001d8 L0L226
-              main.s:350    .text:00000000000001db L0L227
-              main.s:351    .text:00000000000001dd L0L228
-              main.s:352    .text:00000000000001e2 L0L229
-              main.s:353    .text:00000000000001e5 L0L230
-              main.s:354    .text:00000000000001e6 L0L231
-              main.s:355    .text:00000000000001e7 L0L232
-              main.s:356    .text:00000000000001e8 L0L233
-              main.s:357    .text:00000000000001e9 L0L234
-              main.s:358    .text:00000000000001ec L0L235
-              main.s:359    .text:00000000000001ee L0L236
-              main.s:360    .text:00000000000001f1 L0L237
-              main.s:361    .text:00000000000001f2 L0L238
-              main.s:362    .text:00000000000001f4 L0L239
-              main.s:365    .text:00000000000001f9 L0L240
-              main.s:368    .text:00000000000001fa L0L241
-              main.s:369    .text:00000000000001fc L0L242
-              main.s:370    .text:00000000000001fd L0L243
-              main.s:371    .text:00000000000001fe L0L244
-              main.s:372    .text:00000000000001ff L0L245
-              main.s:373    .text:0000000000000200 L0L246
-              main.s:374    .text:0000000000000203 L0L247
-              main.s:375    .text:0000000000000205 L0L248
-              main.s:376    .text:0000000000000208 L0L249
-              main.s:377    .text:000000000000020b L0L250
-              main.s:378    .text:000000000000020d L0L251
-              main.s:379    .text:000000000000020e L0L252
-              main.s:380    .text:000000000000020f L0L253
-              main.s:381    .text:0000000000000210 L0L254
-              main.s:382    .text:0000000000000211 L0L255
-              main.s:383    .text:0000000000000214 L0L256
-              main.s:384    .text:0000000000000216 L0L257
-              main.s:385    .text:0000000000000218 L0L258
-              main.s:386    .text:000000000000021b L0L259
-              main.s:387    .text:000000000000021e L0L260
-M68HC11 GAS  soft.s 			page 16
-
-
-              main.s:388    .text:000000000000021f L0L261
-              main.s:389    .text:0000000000000222 L0L262
-              main.s:390    .text:0000000000000225 L0L263
-              main.s:391    .text:0000000000000228 L0L264
-              main.s:392    .text:0000000000000229 L0L265
-              main.s:393    .text:000000000000022b L0L266
-              main.s:394    .text:000000000000022e L0L267
-              main.s:397    .text:0000000000000230 L0L268
-              main.s:400    .text:0000000000000231 L0L269
-              main.s:401    .text:0000000000000234 L0L270
-              main.s:402    .text:0000000000000235 L0L271
-              main.s:403    .text:0000000000000236 L0L272
-              main.s:404    .text:0000000000000237 L0L273
-              main.s:405    .text:0000000000000238 L0L274
-              main.s:406    .text:000000000000023b L0L275
-              main.s:407    .text:000000000000023e L0L276
-              main.s:408    .text:0000000000000241 L0L277
-              main.s:409    .text:0000000000000242 L0L278
-              main.s:410    .text:0000000000000243 L0L279
-              main.s:411    .text:0000000000000244 L0L280
-              main.s:412    .text:0000000000000245 L0L281
-              main.s:413    .text:0000000000000248 L0L282
-              main.s:414    .text:0000000000000249 L0L283
-              main.s:415    .text:000000000000024c L0L284
-              main.s:416    .text:000000000000024d L0L285
-              main.s:417    .text:000000000000024e L0L286
-              main.s:418    .text:000000000000024f L0L287
-              main.s:419    .text:0000000000000250 L0L288
-              main.s:420    .text:0000000000000253 L0L289
-              main.s:421    .text:0000000000000255 L0L290
-              main.s:422    .text:0000000000000258 L0L291
-              main.s:423    .text:0000000000000259 L0L292
-              main.s:424    .text:000000000000025b L0L293
-              main.s:425    .text:000000000000025d L0L294
-              main.s:426    .text:000000000000025e L0L295
-              main.s:427    .text:0000000000000260 L0L296
-              main.s:430    .text:0000000000000262 L0L297
-              main.s:433    .text:0000000000000263 L0L298
-              main.s:434    .text:0000000000000265 L0L299
-              main.s:435    .text:0000000000000268 L0L300
-              main.s:436    .text:0000000000000269 L0L301
-              main.s:437    .text:000000000000026a L0L302
-              main.s:438    .text:000000000000026b L0L303
-              main.s:439    .text:000000000000026c L0L304
-              main.s:440    .text:000000000000026f L0L305
-              main.s:441    .text:0000000000000271 L0L306
-              main.s:442    .text:0000000000000272 L0L307
-              main.s:443    .text:0000000000000274 L0L308
-              main.s:444    .text:0000000000000277 L0L309
-              main.s:445    .text:000000000000027a L0L310
-              main.s:446    .text:000000000000027d L0L311
-              main.s:447    .text:000000000000027e L0L312
-              main.s:448    .text:0000000000000280 L0L313
-              main.s:449    .text:0000000000000282 L0L314
-              main.s:450    .text:0000000000000285 L0L315
-              main.s:451    .text:0000000000000286 L0L316
-              main.s:454    .text:0000000000000289 L0L317
-M68HC11 GAS  soft.s 			page 17
-
-
-              main.s:458    .text:000000000000028a L0L318
-              main.s:459    .text:000000000000028c L0L319
-              main.s:460    .text:000000000000028f L0L320
-              main.s:461    .text:0000000000000290 L0L321
-              main.s:462    .text:0000000000000291 L0L322
-              main.s:463    .text:0000000000000292 L0L323
-              main.s:464    .text:0000000000000293 L0L324
-              main.s:465    .text:0000000000000296 L0L325
-              main.s:466    .text:0000000000000297 L0L326
-              main.s:467    .text:0000000000000299 L0L327
-              main.s:468    .text:000000000000029c L0L328
-              main.s:469    .text:000000000000029e L0L329
-              main.s:470    .text:00000000000002a1 L0L330
-              main.s:471    .text:00000000000002a2 L0L331
-              main.s:472    .text:00000000000002a5 L0L332
-              main.s:473    .text:00000000000002a8 L0L333
-              main.s:474    .text:00000000000002aa L0L334
-              main.s:476    .text:00000000000002af L0L335
-              main.s:477    .text:00000000000002b0 L0L336
-              main.s:478    .text:00000000000002b2 L0L337
-              main.s:479    .text:00000000000002b3 L0L338
-              main.s:480    .text:00000000000002b4 L0L339
-              main.s:481    .text:00000000000002b5 L0L340
-              main.s:482    .text:00000000000002b6 L0L341
-              main.s:483    .text:00000000000002b8 L0L342
-              main.s:484    .text:00000000000002b9 L0L343
-              main.s:485    .text:00000000000002bb L0L344
-              main.s:486    .text:00000000000002bc L0L345
-              main.s:487    .text:00000000000002be L0L346
-                            *COM*:0000000000000064 rev_temp
-              soft.s:0      .text:00000000000002bf L0F1
-                            .text:00000000000002af .L19
-                            .text:000000000000028a .L27
-                            .text:00000000000001a4 .L28
+              main.s:412    .text:0000000000000297 L0L327
+              main.s:413    .text:0000000000000299 L0L328
+              main.s:415    .text:000000000000029e L0L329
+              main.s:416    .text:000000000000029f L0L330
+              main.s:417    .text:00000000000002a1 L0L331
+              main.s:418    .text:00000000000002a2 L0L332
+              main.s:419    .text:00000000000002a3 L0L333
+              main.s:420    .text:00000000000002a4 L0L334
+              main.s:421    .text:00000000000002a5 L0L335
+              main.s:422    .text:00000000000002a7 L0L336
+              main.s:423    .text:00000000000002a8 L0L337
+              main.s:424    .text:00000000000002aa L0L338
+              main.s:425    .text:00000000000002ab L0L339
+              main.s:426    .text:00000000000002ad L0L340
+              soft.s:0      .text:00000000000002ae L0F1
+                            .text:000000000000029e .L19
+                            .text:0000000000000279 .L27
+                            .text:0000000000000193 .L28
 
 NO UNDEFINED SYMBOLS

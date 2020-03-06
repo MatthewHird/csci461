@@ -1,6 +1,25 @@
 /*======================================================================
   Behaviour: 
-    Preemptive RIOS
+    Implementation of preemptive RIOS for the HC11
+
+    Runs 2 example programs:
+        Sequence:   Loops through a sequence of 3 outputs (Bit2 -> Bit1 -> Bit0)
+        Toggle:     Toggles an output (Bit0) on and off.
+
+  Assumptions:
+    Program is executed through the Buffalo Monitor and can access 
+        the Buffalo Monitor Interrupt Jump Table
+    Program uses interrupts to its advantage.
+
+  Pins: 
+    Program is designed to use the following I/O pins on the HC11: 
+      OUT:
+        Sequence:
+            PA6 -> State(Bit2)
+            PA5 -> State(Bit1)
+            PA4 -> State(Bit0)
+        Toggle:
+            PA7 -> State(Bit0)
 
   Assumptions:
     Program is executed through the Buffalo Monitor and can access 
@@ -9,7 +28,7 @@
 
 
   Author: Matthew Hird
-  Date: Feb 27 2020
+  Date: Mar 4 2020
   ======================================================================*/
 
 // HC11 Vector, Flag, & Port Access Points
@@ -38,8 +57,8 @@
 #define CLEAR_OC2_MASK (OC2_MASK)
 
 // Data Direction Bits
-#define DDRA3 (0x08)             // PA3
-#define DDRA7 (0x80)             // PA7
+#define DDRA3 (0x08)                        // PA3
+#define DDRA7 (0x80)                        // PA7
 
 // OUTPUT
 #define SEQ_TSK_OUT_BIT2 (0x40)             // PA6
@@ -57,23 +76,23 @@
 #define TOG_TSK_STATE_OFF (0x00)
 
 #define NUMBER_OF_TASKS 2
-#define TASK_PERIOD_GCD 20                   // Timer tick rate in ms
+#define TASK_PERIOD_GCD 20                  // Timer tick rate in 10 ms
 
-#define TOGGLE_TSK_PERIOD 100
-#define SEQUENCE_TSK_PERIOD 20
+#define TOGGLE_TSK_PERIOD 100               // in 10 ms
+#define SEQUENCE_TSK_PERIOD 20              // in 10 ms
 
-#define IDLE_TASK 255                         // 0 highest priority, 255 lowest
+#define IDLE_TASK 255                       // 0 highest priority, 255 lowest
 
 // Readability Constants
 #define TRUE 1
 #define FALSE 0
 
 typedef struct task {
-    volatile unsigned short period;                      // Rate at which the task should tick
-    volatile unsigned short elapsed_time;                // Time since task's last tick
+    volatile unsigned short period;                         // Rate at which the task should tick
+    volatile unsigned short elapsed_time;                   // Time since task's last tick
     volatile unsigned char state;            
     volatile unsigned char is_running;            
-    unsigned char (*tick_func)(unsigned short cur_state);    // Function to call for task's tick
+    unsigned char (*tick_func)(unsigned short cur_state);   // Function to call for task's tick
 } task_t;
 
 volatile unsigned short toc2_interrupt_count = 0;
@@ -82,27 +101,6 @@ volatile task_t tasks[NUMBER_OF_TASKS];
 
 volatile unsigned char running_tasks[4] = { IDLE_TASK };    // Track running tasks-[0] always IDLE_TASK
 volatile unsigned char current_task_index = 0;              // Index of highest priority task in running_tasks
-
-// imported from buff.s (for debugging))
-void wstr(char* s);
-void wcrlf(void);
-
-// for debugging
-void reverse(char* in_str, unsigned short length); 
-void itoa(unsigned short num, char* out_str); 
-void print_int(unsigned short print_number);
-
-char t1[10] = "Test1\n\4";
-char t2[10] = "Test2\n\4";
-char t3[10] = "Test3\n\4";
-char t4[10] = "Test4\n\4";
-char t5[10] = "Test5\n\4";
-char t6[10] = "Test6\n\4";
-char t7[10] = "Test7\n\4";
-char t8[10] = "Test8\n\4";
-char t9[10] = "Test9\n\4";
-char rev_temp[100];
-
 
 // Forward Declarations
 void init_tasks(void);
@@ -154,9 +152,9 @@ unsigned short toggle_tsk_tick_func(unsigned short state) {
         case TOG_TSK_STATE_OFF:
             state = TOG_TSK_STATE_ON;
             break;
-        // default:
-        //     state = TOG_TSK_STATE_OFF;
-        //     break;
+        default:
+            state = TOG_TSK_STATE_OFF;
+            break;
     }
 
     port_a = (port_a & (~TOG_TSK_OUT_MASK)) | state;
@@ -175,15 +173,16 @@ unsigned short sequence_tsk_tick_func(unsigned short state) {
         case SEQ_TSK_STATE_001:
             state = SEQ_TSK_STATE_100;
             break;
-        // default:
-        //     state = SEQ_TSK_STATE_100;
-        //     break;
+        default:
+            state = SEQ_TSK_STATE_100;
+            break;
     }
 
     port_a = (port_a & (~SEQ_TSK_OUT_MASK)) | state;
     return state;
 }
 
+// preemptive rios scheduler interrupt routine
 void toc2_isr(void) {
     volatile unsigned char i;
     volatile unsigned char is_tick = FALSE;
@@ -205,16 +204,16 @@ void toc2_isr(void) {
                 && (running_tasks[current_task_index] > i)  // Task priority > current task priority
                 && (!tasks[i].is_running)                   // Task not already running (no self-preemption)
             ) {
-                __asm__("sei");                                   // Critical section
-                tasks[i].elapsed_time = 0;                                  // Reset time since last tick
-                tasks[i].is_running = TRUE;                                 // Mark as running
+                __asm__("sei");                                         // Critical section
+                tasks[i].elapsed_time = 0;                              // Reset time since last tick
+                tasks[i].is_running = TRUE;                             // Mark as running
                 current_task_index += 1;
-                running_tasks[current_task_index] = i;        // Add to running_tasks
+                running_tasks[current_task_index] = i;                  // Add to running_tasks
                 __asm__("cli"); 
 
                 tasks[i].state = tasks[i].tick_func(tasks[i].state);    // Execute tick
                 
-                __asm__("sei");                                   // Critical section
+                __asm__("sei");                                         // Critical section
                 tasks[i].is_running = FALSE;
                 running_tasks[current_task_index] = IDLE_TASK;          // Remove from running_tasks
                 current_task_index -= 1;
