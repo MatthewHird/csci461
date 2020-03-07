@@ -1,0 +1,145 @@
+package Tosf::Fsm::IfaceCon;
+#================================================================--
+# File Name    : Fsm/IfaceCon.pm
+#
+# Purpose      : Interface Controller
+#
+# Author       : Peter Walsh, Vancouver Island University
+#
+# System       : Perl (Linux)
+#
+#=========================================================
+
+$| = 1;
+use strict;
+use warnings;
+
+include(mmt.pl)
+
+use constant  TRUE => 1;
+use constant  FALSE => 0;
+
+sub  new {
+   my $class = shift @_;
+   my %params = @_;
+
+   my $self = {
+      taskName => my $taskName,
+      taskSem => my $taskSem,
+      handlerName => my $handlerName,
+      handlerSem => my $handlerSem
+   };
+
+   if (defined($params{taskName})) {
+      $self->{taskName} = $params{taskName};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Fsm::IfaceCon->new  taskName undefined"));
+   }
+
+   if (defined($params{taskSem})) {
+      $self->{taskSem} = $params{taskSem};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Fsm::IfaceCon->new  taskSem undefined"));
+   }
+
+   if (defined($params{handlerName})) {
+      $self->{handlerName} = $params{handlerName};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Fsm::IfaceCon->new  handlerName undefined"));
+   }
+
+   if (defined($params{handlerSem})) {
+      $self->{handlerSem} = $params{handlerSem};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Fsm::IfaceCon->new  handlerSem undefined"));
+   }
+
+   bless ($self, $class);
+   return $self;
+}
+
+
+my $workPkt; 
+my $pkt;
+my $raw;
+my $k;
+my $readSuccess;
+my $opcode;
+my $msg;
+my $iface;
+my $ns;
+
+mmt_TableBegin 
+
+mmt_TableRow(
+   "SIN",
+
+   $raw = Tosf::Table::MESSAGE->dequeue($self->{taskName});
+   $workPkt->decode($raw);
+   $opcode = $workPkt->get_opcode();
+   $iface = $workPkt->get_iface();
+   if ($opcode == 0) {
+      $ns = "OP0";
+   } elsif ($opcode == 1) {
+      $ns = "OP1";
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Fsm::IfaceCon->new  invalid opcode $opcode"));
+   },
+
+   $ns
+)
+
+mmt_TableRow(
+   "SOUT",
+
+   Tosf::Table::SEMAPHORE->wait(semaphore => $self->{taskSem}),
+
+   "SIN"
+)
+
+
+mmt_TableRow(
+   "OP0", 
+   
+   $ns = "SOUT";
+   $readSuccess = FALSE;
+   if (Tosf::Table::IFACE->get_opened($iface)) {
+      $pkt = Tosf::Table::IFACE->dequeue_packet($iface);
+      if (defined($pkt)) {
+         $readSuccess = TRUE;
+         $ns = "OP0";
+         if ($pkt ne 'heartbeat') {
+            $workPkt->set_msg($pkt);
+            $workPkt->set_opcode(0);
+            Tosf::Table::MESSAGE->enqueue($self->{handlerName}, $workPkt->encode());
+            Tosf::Table::SEMAPHORE->signal(semaphore => $self->{handlerSem});
+         } else {
+            Tosf::Table::IFACE->increment_heartbeatCount($iface);
+         }
+      }
+
+   },
+
+   $ns
+)
+
+mmt_TableRow(
+   "OP1", 
+
+   if (Tosf::Table::IFACE->get_opened($iface)) {
+      Tosf::Table::IFACE->enqueue_packet($iface, $workPkt->get_msg());
+   },
+
+   "SOUT"
+)
+
+mmt_TableEnd 
+
+mmt_Reset(
+   "SIN",
+
+   $workPkt = Tosf::Packet::Work->new();
+
+)
+
+1;

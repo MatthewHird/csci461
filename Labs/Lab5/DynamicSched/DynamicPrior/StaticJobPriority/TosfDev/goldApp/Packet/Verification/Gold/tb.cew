@@ -1,0 +1,40 @@
+#================================================================--
+# File Name    : Packet/Verification/Generic/tb.cew
+#
+# Purpose      : unit testing
+#
+# Author       : Peter Walsh, Vancouver Island University
+#
+# System       : Perl (Linux)
+#
+#================================================================--
+
+$| = 1;
+use strict;
+use warnings;
+
+include(cew.pl)
+
+use lib '../../../../';
+use Tosf::Exception::Trap;
+use Tosf::Packet::Generic;
+use Try::Tiny;
+
+cew_Variables
+
+sub leaveScript {
+   cew_Summary
+   print("Bye\n");
+   exit(0);
+}
+
+$SIG{INT} = sub {leaveScript();};
+
+my $y = Tosf::Packet::Generic->new();
+$y->set_src_ip("192.168.18.21");
+my $message = $y->encode();
+$y->set_src_ip("garbage");
+$y->decode($message);
+cew_Ncase(, $y->get_src_ip(), '192.168.18.21')
+
+cew_Summary

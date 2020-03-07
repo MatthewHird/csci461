@@ -1,0 +1,7 @@
+See Csci355 Lab9.
+Note, to stay true to the Lab9 specification, CON (controller) is
+implemented as a Moor machine. The output is queued for later display.
+
+Output queuing is not necessary since old output data that has not been
+displayed is of no use. 
+

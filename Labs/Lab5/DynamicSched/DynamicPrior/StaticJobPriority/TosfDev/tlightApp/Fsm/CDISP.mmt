@@ -1,0 +1,85 @@
+package tlightApp::Fsm::CDISP;
+#================================================================--
+# File Name    : CDISP.pm
+#
+# Purpose      : implements traffic light task CDISP (display)
+#
+# Author       : Peter Walsh, Vancouver Island University
+#
+# System       : Perl (Linux)
+#
+#=========================================================
+
+$| = 1;
+use strict;
+use warnings;
+
+include(mmt.pl)
+
+sub  new {
+   my $class = shift @_;
+   my %params = @_;
+
+   my $self = {
+      taskName => my $taskName,
+      taskSem => my $taskSem
+   };
+
+   if (defined($params{taskName})) {
+      $self->{taskName} = $params{taskName};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Task::CDISP taskName undefined"));
+   }
+
+   if (defined($params{taskSem})) {
+      $self->{taskSem} = $params{taskSem};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Task::CDISP taskSem undefined"));
+   }
+
+
+   bless ($self, $class);
+   return $self;
+}
+
+my $cout = "HG";
+
+mmt_TableBegin 
+
+my $nout; 
+
+mmt_TableRow(
+   "S0",
+   
+   $nout = Tosf::Table::QUEUE->dequeue("TLQ");
+
+   if (defined($nout) && ($nout ne $cout)) {
+      if ($nout eq "HG") { 
+         tlightApp::Plant::CLIGHTS->set_lights("gray", "gray", "green", "red", "gray", "gray"); 
+      } elsif ($nout eq "HY") {
+         tlightApp::Plant::CLIGHTS->set_lights("gray", "yellow", "gray", "red", "gray", "gray"); 
+      } elsif ($nout eq "FG") {
+         tlightApp::Plant::CLIGHTS->set_lights("red", "gray", "gray", "gray", "gray", "green");
+      } elsif ($nout eq "FY") {
+         tlightApp::Plant::CLIGHTS->set_lights("red", "gray", "gray", "gray", "yellow", "gray"); 
+      }
+
+      $cout = $nout;
+   }
+
+   Tosf::Table::SEMAPHORE->wait(semaphore => $self->{taskSem}),
+
+      
+   "S0"
+   
+)
+
+mmt_TableEnd
+
+mmt_Reset(
+   "S0",
+
+   tlightApp::Plant::CLIGHTS->set_lights("gray", "gray", "green", "red", "gray", "gray");
+)
+
+1;

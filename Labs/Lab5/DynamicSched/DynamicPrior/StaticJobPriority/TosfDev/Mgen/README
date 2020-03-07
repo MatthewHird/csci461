@@ -1,0 +1,6 @@
+gen.pl generates verification Makefiles for all the modules in tosf.
+Warning, it overwrites existing makefiles. Also, note that if tb.cew
+does not exist in a directory, the template tb.cew is copied from
+Cew/Template. This tb.cew is only a stub and has no test cases and no
+errors :)
+

@@ -1,0 +1,51 @@
+#================================================================--
+# File Name    : Collection/Verification/Queue/tb.cew
+#
+# Purpose      : unit testing
+#
+# Author       : Peter Walsh, Vancouver Island University
+#
+# System       : Perl (Linux)
+#
+#================================================================--
+
+$| = 1;
+use strict;
+use warnings;
+
+include(cew.pl)
+
+use lib '../../../../';
+use Tosf::Exception::Trap;
+use Tosf::Collection::Queue;
+use Try::Tiny;
+
+cew_Variables
+
+sub leaveScript {
+   cew_Summary
+   print("Bye\n");
+   exit(0);
+}
+
+$SIG{INT} = sub {leaveScript();};
+
+my $x = Tosf::Collection::Queue->new();
+my $y = Tosf::Collection::Queue->new();
+
+$x->enqueue("Hello");
+$x->enqueue("world");
+$y->enqueue("foo");
+$y->enqueue("bar");
+$y->enqueue("Demo3");
+
+cew_Ncase(, $x->get_siz(), 2)
+cew_Ncase(, $y->get_siz(), 3)
+
+cew_Ncase(, $x->dequeue(), 'Hello')
+cew_Ncase(, $y->dequeue(), 'foo')
+
+cew_Ncase(, $x->get_siz(), 1)
+cew_Ncase(, $y->get_siz(), 2)
+
+cew_Summary

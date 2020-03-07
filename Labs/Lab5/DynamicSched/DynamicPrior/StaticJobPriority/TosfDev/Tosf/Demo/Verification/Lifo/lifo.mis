@@ -1,0 +1,43 @@
+LIFO (stack) Interface Specification
+
+Exceptions
+----------
+               full    
+               empty   
+
+Class Method new
+----------------
+Inputs: optional (scalar) stack size
+Exceptions: none
+Behaviour: create a  stack instance with state
+               maxsize # instance scalar variable: max size of stack (default 5)
+               stack   # instance array variable 
+Outputs: returns a reference to a stack instance
+
+Instance Method size
+---------------------
+Inputs: none
+Exceptions: none
+Behaviour/Outputs returns the stack size
+
+Instance Method push
+--------------------
+Inputs: scalar x
+Exceptions: if stack size == stack max size then throw full
+Behaviour: push x on to stack
+Outputs: none
+   
+Instance Method pop
+-------------------
+Inputs: none
+Exceptions: if stack size == 0 then throw empty
+Behaviour: pop the stack
+Outputs: none
+   
+Instance Method top
+-------------------
+Inputs: none
+Exceptions: if stack size == 0 then throw empty
+Behaviour/Outputs: return element at top of stack
+
+See lifo_tst.pl for examles of method invocation.

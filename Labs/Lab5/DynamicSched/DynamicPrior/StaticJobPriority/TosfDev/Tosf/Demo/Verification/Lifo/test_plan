@@ -1,0 +1,26 @@
+Test Plan for LIFO.pm (stack)
+Peter Walsh Jan 2014
+
+assumptions max_size >2
+
+test environment
+   cew driver
+   no stubs
+
+test case selection strategy
+  special values
+     instance state
+        interval rule on size of stack: [0..max_size]
+        (ie empty, half-full and full)
+     method parameters
+        none
+   test cases
+      for each of the special instance state values,
+         call push, pop and top
+         check exception behavior
+         after set calls, check get call values
+    test implementation strategy
+       load (n) pre-loads the stack
+       eg load (3) loads stack with 10 20 and 30
+       statement coverage measured using cover.
+

@@ -1,0 +1,94 @@
+#================================================================--
+# File Name    : tb.cew
+#
+# Purpose      : unit testing
+#
+# Author       : Peter Walsh, Vancouver Island University
+#
+# System       : Perl (Linux)
+#
+#------------------------------------------------------------------
+# Revision List
+# Version      Author  Date    Changes
+# 1.0          PW      Oct 12  New version
+#================================================================--
+
+$|=1;
+use strict;
+use warnings;
+
+include(cew.pl)
+
+use lib '../../../../';
+use Tosf::Demo::Lifo;
+use Tosf::Exception::Trap;
+use Try::Tiny;
+use Time::HiRes qw (ualarm usleep gettimeofday tv_interval);
+
+cew_Variables
+
+# Local Function Load (s, n);
+# pushes n values on the stack from
+# the sequence 10, 20, 30  ... 
+# note: no exception checking
+
+sub load {
+   my $s = shift @_;
+   my $n = shift @_;
+   
+   for (my $i = 0; $i < $n; $i++) {
+      $s->push(($i + 1) * 10);
+   }
+}
+
+############
+# example of 
+# a timed test
+###########
+
+cew_Tcase(usleep(9800), 9.9, 10)
+
+
+#############
+# empty stack
+#############
+
+my $stack0=Tosf::Demo::Lifo->new(max => 10);
+cew_Ecase($stack0->top(), "empty")
+cew_Ecase($stack0->pop(), "empty")
+
+#################
+# half full stack
+#################
+
+my $stack1 = Tosf::Demo::Lifo->new(max => 10);
+cew_Ncase(load($stack1, 5), $stack1->top(), 50, !=)
+cew_Ncase($stack1->pop(), $stack1->top(), 40, !=)
+cew_Ncase($stack1->pop(), $stack1->top(), 30, !=)
+
+#################
+# full stack
+#################
+
+my $stack2 = Tosf::Demo::Lifo->new(max => 10);
+cew_Ncase(load($stack2, 10), $stack2->top(), 100, !=)
+cew_Ecase($stack2->push(110), "full")
+cew_Ncase(, $stack2->top(), 100, !=)
+cew_Ncase($stack2->pop(), $stack2->top(), 90, !=)
+
+################
+# stress test
+################
+
+my $stack3 = Tosf::Demo::Lifo->new(max => 100);
+
+for (my $i = 0; $i < 100; $i++) {
+   cew_Ncase($stack3->push($i), $stack3->top(), $i, !=)
+}
+
+for (my $i = 99; $i >= 0; $i--) {
+   cew_Ncase(, $stack3->top(), $i, !=)
+   cew_Ncase($stack3->pop(), 0, 0, !=)
+}
+   
+cew_Summary

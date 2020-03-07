@@ -1,0 +1,70 @@
+package traceApp::Fsm::JERRY;
+#================================================================--
+# File Name    : JERRY.pm
+#
+# Purpose      : implements task JERRY (to demonstrate
+#                 a simple scheduling trace).
+#
+# Author       : Peter Walsh, Vancouver Island University
+#
+# System       : Perl (Linux)
+#
+#=========================================================
+
+$| = 1;
+use strict;
+use warnings;
+
+include(mmt.pl)
+
+sub  new {
+   my $class = shift @_;
+   my %params = @_;
+
+   my $self = {
+      taskName => my $taskName,
+      taskSem => my $taskSem
+   };
+
+   if (defined($params{taskName})) {
+      $self->{taskName} = $params{taskName};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Task::JERRY taskName undefined"));
+   }
+
+   if (defined($params{taskSem})) {
+      $self->{taskSem} = $params{taskSem};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Task::JERRY taskSem undefined"));
+   }
+
+   bless ($self, $class);
+   return $self;
+}
+
+my $count;
+
+mmt_TableBegin 
+
+
+mmt_TableRow(
+   "S1",
+  
+   $count = $count + 1;
+   print("JERRY called $count times \n");
+   print("JERRY: wait on semaphore ", $self->{taskSem} , "\n");
+   Tosf::Table::SEMAPHORE->wait(semaphore => $self->{taskSem}),
+
+  "S1"
+)
+
+mmt_TableEnd 
+
+mmt_Reset(
+   "S1",
+
+   $count = 0;
+)
+
+
+1;

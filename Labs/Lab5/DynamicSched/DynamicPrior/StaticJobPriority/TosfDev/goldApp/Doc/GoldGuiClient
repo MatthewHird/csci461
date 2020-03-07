@@ -1,0 +1,14 @@
+CONTROL
+
+--------GOLDPACMAN------------
+
+Iface
+
+SicConC
+
+
+
+GOLDPACMAN work opcodes
+OP0 process an incomming gold packet
+OP1 send a gold register packet
+OP2 send a gold stop packet
