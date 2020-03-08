@@ -89,7 +89,7 @@ sub set_value {
    }
 
    if (!exists($table{$name})) {
-      die(Tosf::::Exception::Trap->new(name => "Table::SEMAPHORE->set_value name = $name not in table"));
+      die(Tosf::Exception::Trap->new(name => "Table::SEMAPHORE->set_value name = $name not in table"));
    }
 
    $table{$name}->set_value($v);

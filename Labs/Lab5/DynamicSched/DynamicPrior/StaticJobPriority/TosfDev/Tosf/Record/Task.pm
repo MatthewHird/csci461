@@ -1,5 +1,5 @@
 package Tosf::Record::Task;
-#================================================================--
+#=================================================================
 # File Name    : Task.pm
 #
 # Purpose      : implements Task record
@@ -8,7 +8,10 @@ package Tosf::Record::Task;
 #
 # System       : Perl (Linux)
 #
-#=========================================================
+# Revisions     :
+#     Matthew Hird    Mar 2020    Add wcet and elapsedTime fields
+#
+#=================================================================
 
 $| = 1;
 use strict;
@@ -27,7 +30,9 @@ sub  new {
       blockingSemRef => my $blockingSemRef = ' ',
       fsm => my $fsm,
       currentState => my $currentState = "dummy current state",
-      nextState => my $nextState = "dummp next state"
+      nextState => my $nextState = "dummp next state",
+      wcet => my $wcet = 0,
+      elapsedTime => my $elapsedTime = 0
    };
                 
    bless ($self, $class);
@@ -159,6 +164,36 @@ sub set_nextState {
    $self->{nextState} = $s;
    return;
 }
+
+sub get_wcet {
+   my $self = shift @_;
+   
+   return $self->{wcet};
+}
+
+sub set_wcet {
+   my $self = shift @_;
+   my $s = shift @_;
+ 
+   $self->{wcet} = $s;
+   return;
+}
+
+sub get_elapsedTime {
+   my $self = shift @_;
+   
+   return $self->{elapsedTime};
+}
+
+sub set_elapsedTime {
+   my $self = shift @_;
+   my $s = shift @_;
+ 
+   $self->{elapsedTime} = $s;
+   return;
+}
+
+
 
 sub dump {
    my $self = shift @_;

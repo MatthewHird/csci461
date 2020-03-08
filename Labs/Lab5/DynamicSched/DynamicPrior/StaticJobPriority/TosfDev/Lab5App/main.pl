@@ -1,16 +1,20 @@
 #!/usr/bin/perl
-#========================================================
-# Project      : Time Oriented Software Framework
+#==================================================================
+# Project       : Time Oriented Software Framework
 #
-# File Name    : main.pl
+# File Name     : main.pl
 #
-# Purpose      : main routine for traceApp
+# Purpose       : main routine for Lab5App
 #
-# Author       : Peter Walsh, Vancouver Island University
+# Author        : Matthew Hird
+#                 (Modified from traceApp/main.pl by Peter Walsh)
 #
-# System       : Perl (Linux)
 #
-#========================================================
+# Date          : March 7 2020
+#
+# System        : Perl (Linux)
+#
+#==================================================================
 
 $SIG{INT} = sub { leaveScript(); };
 
@@ -42,9 +46,6 @@ no warnings "experimental::smartmatch";
 
 use lib '../';
 
-#use Sys::Mlockall qw(:all);
-#if (mlockall(MCL_CURRENT | MCL_FUTURE) != 0) { die "Failed to lock RAM: $!"; }
-
 use AnyEvent;
 use Gtk2 -init;
 use Try::Tiny;
@@ -71,17 +72,8 @@ use Tosf::Executive::TIMER;
 use Tosf::Executive::SCHEDULER;
 use Tosf::Executive::DISPATCHER;
 
-use traceApp::Fsm::FOO;
-use traceApp::Fsm::BAR;
-use traceApp::Fsm::TOM;
-use traceApp::Fsm::JERRY;
-use traceApp::Fsm::PRODUCER;
-use traceApp::Fsm::CONSUMER;
-use traceApp::Plant::MENU;
-use traceApp::Plant::TRACE0;
-use traceApp::Plant::TRACE1;
-use traceApp::Plant::TRACE2;
-use traceApp::Plant::TRACE3;
+use Lab5App::Fsm::FOO;
+use Lab5App::Plant::LAB5_APP;
 
 use constant TRUE  => 1;
 use constant FALSE => 0;
@@ -90,8 +82,8 @@ use constant FALSE => 0;
 use constant TIMER_PERIOD => 1.0;
 
 # sleep time in micro seconds
-use constant NUM_SLOTS                   => 4;
-use constant NUM_PERIODIC_PRIORITY_SLOTS => 3;
+use constant NUM_SLOTS                   => 1;
+use constant NUM_PERIODIC_PRIORITY_SLOTS => 1;
 
 sub leaveScript {
 
@@ -111,7 +103,7 @@ my $tl = Tosf::Exception::Monitor->new(
         Tosf::Executive::DISPATCHER->set_numPeriodicPrioritySlots(NUM_PERIODIC_PRIORITY_SLOTS);
         Tosf::Executive::TIMER->set_period(TIMER_PERIOD);
 
-        traceApp::Plant::MENU->start();
+        Lab5App::Plant::LAB5_APP->start();
 
         Tosf::Executive::TIMER->start();
 
