@@ -94,7 +94,7 @@ sub tick {
                 Tosf::Table::PQUEUE->enqueue('pTask', $taskName, $laxity);
 
                 # uncomment the following to run the trace examples
-                print("SCHEDULER: Task Name => " . $taskName . "; Laxity => " . $laxity . "\n");
+                print("SCHEDULER: Task Name => $taskName; Laxity => $laxity\n");
                 # print("SCHEDULER: ready periodic task $taskName with priority $laxity \n");
                 
             } else {

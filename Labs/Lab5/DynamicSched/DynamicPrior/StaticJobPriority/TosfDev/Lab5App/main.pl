@@ -47,7 +47,7 @@ no warnings "experimental::smartmatch";
 use lib '../';
 
 use AnyEvent;
-use Gtk2 -init;
+# use Gtk2 -init;
 use Try::Tiny;
 use Time::HiRes qw (ualarm usleep);
 use Gnome2::Canvas;
