@@ -1,0 +1,86 @@
+package Tosf::Fsm::HBEAT;
+#================================================================--
+# File Name    : Fsm/HBEAT.pm
+#
+# Purpose      : implements task HBEAT (heartbeat)
+#
+# Author       : Peter Walsh, Vancouver Island University
+#
+# System       : Perl (Linux)
+#
+#=========================================================
+
+$| = 1;
+use strict;
+use warnings;
+
+include(mmt.pl)
+
+sub  new {
+   my $class = shift @_;
+   my %params = @_;
+
+   my $self = {
+      taskName => my $taskName, 
+      taskSem => my $taskSem 
+   };
+
+   if (defined($params{taskName})) {
+      $self->{taskName} = $params{taskName};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Fsm::HBEAT->new  taskName undefined"));
+   }
+
+   if (defined($params{taskSem})) {
+      $self->{taskSem} = $params{taskSem};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Fsm::HBEAT->new  taskSem undefined"));
+   }
+
+   bless ($self, $class);
+   return $self;
+}
+
+
+my $pkt;
+my @keys;
+my $k;
+my $siz;
+my $ns;
+
+mmt_TableBegin 
+
+mmt_TableRow(
+   "S0", 
+   
+   $pkt = "heartbeat";
+   @keys = Tosf::Table::IFACE->get_keys();
+   $siz = @keys;
+   $k = 0,
+   
+   "S1"
+)
+
+mmt_TableRow(
+   "S1", 
+
+   if ($k < $siz) {
+      Tosf::Table::IFACE->enqueue_packet($keys[$k], $pkt);
+      $ns = "S1"; 
+      $k = $k + 1;
+   } else {
+      $ns = "S0";
+      Tosf::Table::SEMAPHORE->wait(semaphore => $self->{taskSem})
+   },
+   
+   $ns
+)
+
+mmt_TableEnd 
+
+mmt_Reset(
+   "S0",
+
+)
+
+1;

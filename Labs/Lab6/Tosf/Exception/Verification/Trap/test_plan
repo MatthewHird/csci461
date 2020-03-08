@@ -1,0 +1,24 @@
+Test Plan for Exception.pm
+Peter Walsh Oct 2012
+
+Test the constructor and methods.
+
+In addition, the script contains test cases that are expected to fail.
+The intent is to verify that cew checks the presence and absence of
+exceptions in the appropriate way.
+
+Make bats is expected to produce:
+
+Test Case ERROR (Ncase) in script at line number 45
+Unexpected Exception full thrown 
+Test Case ERROR (Ecase) in script at line number 51
+Unexpected exception ull thrown 
+Test Case ERROR (Ecase) in script at line number 52
+Unexpected exception full thrown 
+Test Case ERROR (Ecase) in script at line number 55
+Expected exception full not thrown 
+
+**********Summary**********
+Total number of test cases = 8
+Total number of test cases in error = 4
+`

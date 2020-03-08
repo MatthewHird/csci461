@@ -1,0 +1,227 @@
+package Tosf::Fsm::SocConC;
+#================================================================--
+# File Name    : Fsm/SocConC.pm
+#
+# Purpose      : implements task socket controller (client) 
+#
+# Author       : Peter Walsh, Vancouver Island University
+#
+# System       : Perl (Linux)
+#
+#=========================================================
+
+$| = 1;
+use strict;
+use warnings;
+
+include(mmt.pl)
+
+use constant MAXLEN => 100;
+use constant MAXTO => 1000;
+use constant FALSE => 0;
+use constant TRUE => 1;
+
+sub  new {
+   my $class = shift @_;
+   my %params = @_;
+
+   my $self = {
+      taskName => my $taskName,
+      taskSem => my $taskSem,
+      ifaceName => my $ifaceName,  
+      handlerName => my $handlerName,  
+      handlerSem => my $handlerSem,  
+      port => my $port,
+      host => my $host,
+      soc => my $soc,
+      select => my $select = IO::Select->new(),
+      timeout => my $timeout
+   };
+
+   $self->{soc} = undef;
+   $self->{timeout} = MAXTO;
+
+   if (defined($params{taskName})) {
+      $self->{taskName} = $params{taskName};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Tosf::Fsm::SocConC->new  taskName undefined"));
+   }
+
+   if (defined($params{taskSem})) {
+      $self->{taskSem} = $params{taskSem};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Tosf::Fsm::SocConC->new  taskSem undefined"));
+   }
+
+   if (defined($params{port})) {
+      $self->{port} = $params{port};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Tosf::Fsm::SocConC->new  port undefined"));
+   }
+
+   if (defined($params{host})) {
+      $self->{host} = $params{host};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Tosf::Fsm::SocConC->new  host undefined"));
+   }
+
+   if (defined($params{ifaceName})) {
+      $self->{ifaceName} = $params{ifaceName};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Tosf::Fsm::SocConC->new  ifaceName undefined"));
+   }
+
+   if (defined($params{handlerName})) {
+      $self->{handlerName} = $params{handlerName};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Tosf::Fsm::SocConC->new  handlerName undefined"));
+   }
+
+   if (defined($params{handlerSem})) {
+      $self->{handlerSem} = $params{handlerSem};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Tosf::Fsm::SocConC->new  handlerSem undefined"));
+   }
+
+   bless ($self, $class);
+   return $self;
+}
+
+my $buff;
+my $ns;
+my @clients;
+my $workPkt;
+
+mmt_TableBegin 
+
+mmt_TableRow(
+   "READ", 
+
+   if ($self->{timeout} != 0) {
+      $self->{timeout} = $self->{timeout} - 1;
+   }
+ 
+   undef($buff);
+   @clients = ($self->{select})->can_read(0);
+   foreach my $fh (@clients) {
+      if ($fh == $self->{soc}) {
+         $self->{soc}->recv($buff, MAXLEN);
+         last;
+      }
+   }
+
+   if ((defined($buff)) && (length($buff) != 0)) {
+      Tosf::Table::IFACE->enqueue_packet_fragment($self->{ifaceName}, $buff);
+      $self->{timeout} = MAXTO;
+      $workPkt->set_opcode(0);
+      $workPkt->set_iface($self->{ifaceName});
+      Tosf::Table::MESSAGE->enqueue($self->{handlerName}, $workPkt->encode());
+      Tosf::Table::SEMAPHORE->signal(semaphore => $self->{handlerSem});
+   },
+
+   "WRITE"
+)
+
+mmt_TableRow(
+   "WRITE", 
+
+   $buff = Tosf::Table::IFACE->dequeue_packet_fragment($self->{ifaceName});
+   if (defined($buff) && (defined($self->{soc}))) {
+      $self->{soc}->write($buff);
+   },
+
+  "TOCHECK"
+)
+
+mmt_TableRow(
+   "TOCHECK", 
+
+   if (defined($self->{soc}) && ($self->{timeout} != 0) && ($self->{soc}->connected())) {
+      $ns = "READ";
+   } else {
+      $ns = "WAIT";
+      print("Resetting iface $self->{ifaceName} \n");
+      Tosf::Table::IFACE->set_opened($self->{ifaceName}, FALSE);
+      $self->{timeout} = MAXTO;
+   }
+
+   Tosf::Table::SEMAPHORE->wait(semaphore => $self->{taskSem}),
+
+   $ns 
+)
+
+mmt_TableRow(
+   "WAIT",
+   
+   if ($self->{timeout} != 0) {
+      $self->{timeout} = $self->{timeout} - 1;
+   }
+
+   if ($self->{timeout} == 0) {
+      $ns = "OPEN";
+   } else {
+      $ns = "WAIT";
+   }
+
+   Tosf::Table::SEMAPHORE->wait(semaphore => $self->{taskSem}),
+
+   $ns
+)
+
+mmt_TableRow(
+   "OPEN", 
+
+   Tosf::Table::IFACE->set_heartbeatCount($self->{ifaceName}, 0);
+   if (defined($self->{soc})) {
+      if ($self->{select}->exists($self->{soc})) {
+         ($self->{select})->remove($self->{soc});
+         print("Removed reference to iface $self->{ifaceName} from select \n");
+      }
+      print("Closing iface $self->{ifaceName} \n");
+      close($self->{soc});
+   }
+
+   $self->{soc} = undef;
+
+   Tosf::Table::IFACE->flush($self->{ifaceName});
+   Tosf::Table::IFACE->set_opened($self->{ifaceName}, FALSE);
+
+   my $p = $self->{port};
+   my $h = $self->{host};
+
+   print("Try to open  iface $self->{ifaceName} at host $h / port $p\n");
+   $self->{soc} = new IO::Socket::INET (
+      PeerAddr => $self->{host},
+      PeerPort => $self->{port},
+      Proto => 'tcp',
+      Timeout  => 00001,
+      Blocking => 0
+   );
+
+   if (!defined($self->{soc})) {
+      print("Failed to open iface $self->{ifaceName} \n");
+      $self->{timeout} = MAXTO;
+      $ns = "WAIT";
+   } else {
+      print("Opened iface $self->{ifaceName} at host $h / port $p\n");
+      $self->{select}->add($self->{soc});
+      Tosf::Table::IFACE->set_opened($self->{ifaceName}, TRUE);
+      $self->{timeout} = MAXTO;
+      $ns = "READ";
+   }
+
+   Tosf::Table::SEMAPHORE->wait(semaphore => $self->{taskSem}),
+
+   $ns
+)
+
+mmt_TableEnd 
+
+mmt_Reset(
+   "OPEN",
+
+   $workPkt = Tosf::Packet::Work->new();
+
+)
+
+1;

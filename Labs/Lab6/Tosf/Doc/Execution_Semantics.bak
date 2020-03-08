@@ -1,0 +1,92 @@
+Tosf Execution Semantics
+========================
+Tosf is a framework for developing soft real-time systems.  Tosf employs
+cooperative multitasking where tasks are specified using finite state
+machines (FSMs).
+
+Task logical behaviour is specified using a FSM which in turn is specified
+by the triple (current state, action(s), next state).  A dispatched task
+results in the execution of the action(s) associated with the current
+state of the task's FSM and the transition of the  FSM to its next state.
+
+Tosf tasks can be either periodic or aperiodic.  Aperiodic tasks have
+no deadline. A periodic task can miss its deadline if its corresponding
+FSM  has not transitioned to an accepting state before its deadline.
+
+Tosf is clock-driven and employs a single timer that ticks with period
+TIMER_PERIOD.  A frame is the period of execution-time between successive
+clock ticks.  A frame is divided into NUM_SLOTS slots. A dispatched task
+executes in a single slot.  Therefore, a maximum of NUM_SLOTS tasks can
+be dispatched per frame.  The period of a periodic task is specified
+in clock ticks and has a deadline equal to its period.  Tosf thrown an
+exception and terminates if a deadline is missed. Tosf produces a system
+warning if clock skew is detected.
+
+Tosf supports the Earliest Deadline First (EDP)  scheduling discipline.
+The scheduler produces  a priority queue of ready periodic tasks and a
+FIFO queue of ready aperiodic tasks.
+
+Ready periodic tasks can be given priority over ready aperiodic tasks and
+visa versa.  For example, NUM_SLOTS = 4 and NUM_PERIODIC_PRIORITY_SLOTS
+= 3 gives ready periodic tasks priority in 3 of the 4 slots and ready
+aperiodic tasks have priority in 1 of the 4 slots.
+
+The following pseudocode is an abstraction of Tosf execution semantics
+per clock tick:
+
+   schedule tasks
+
+   slot = 0
+   for (i=0; i<num_periodic; $i++) {
+      dequeue periodic task from priority queue of ready tasks
+      dispatch task
+      slot++
+   }
+
+   slot = 0
+   for (i=0; i<num_aperiodic; $i++) {
+      dequeue aperiodic task from FIFO queue of ready tasks
+      dispatch task
+      slot++
+   }
+
+   wait for next clock tick
+
+The values of NUM_SLOTS and NUM_PERIODIC_PRIORITY_SLOTS are used to
+determine the limits of the two for-loops. Variables num_periodic
+and num_aperiodic correspond to the number of periodic and aperiodic
+tasks to be executed in a given frame.  The sum of num_periodic and
+num_aperiodic must be less than or equal to  NUM_SLOTS.  The dispatcher
+uses the function calcLoopLimits() to calculate the for-loop limits. For
+testing purposses, the  function is replicated in the  test script
+TosfDev/Tosf/Executive/Verification/DISPATCHER/calcLoopLimits.pl.
+
+Tasks can communicate using shared variables. A shared variable is
+specified by the  tuple (current value, next value). Let x be a shared
+variable and let x.current_value and x.next_value refer to the variable's
+current value and next value respectively.  x = val is completed in two
+steps (1) x.next_value <- val and (2) x.current_value <- x.next_value.
+The second step is completed as part of the next round of task scheduling.
+Shared variables are used to avoid race conditions between tasks executing
+during the same timer tick.
+
+Temporal correctness is impacted by four key values viz., TIMER_PERIOD,
+NUM_SLOTS, NUM_PERIODIC_PRIORITY_SLOTS and state transition execution
+times.  A decrease in TIMER_PERIOD may be desirable to achieve better
+timing granularity. This results in an increase in system overhead. To
+avoid missing deadlines, a reduction to TIMER_PERIOD is  typically
+accompanied by a decrease in NUM_SLOTS or a reduction in state transition
+execution times (by modifying FSMs). There is tension between these
+four key parameters and a balance must be achieved to ensure temporal
+correctness and an acceptable system overhead.
+
+Task synchronization and mutual exclusion is achieved using semaphores.
+
+To do:
+-----
+
+Change the scheduling algorithm from EDF to LLF.
+
+Address the issue of priority inversion by employing
+priority ceiling.
+

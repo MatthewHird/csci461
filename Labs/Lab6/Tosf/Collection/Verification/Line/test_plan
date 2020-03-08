@@ -1,0 +1,59 @@
+Test Plan for Collection::Line.pm
+Peter Walsh Feb 2014
+
+use constant PCHAR_ESC => '_G_';
+use constant PCHAR_END => '_H_';
+use constant SEPSIZE => 6; # |PCHAR_ESC| + |PCHAR_END|
+use constant MAX => 1000;
+
+
+assumptions maxbuff > SEPSIZE
+
+test environment
+   cew driver
+   AnyEvent
+   no stubs
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Method Call Sequence (Figure 1)
+
+            enqueue_packet_fragment()              dequeue_packet()
+Line Source ------------------------->  inbuff  -------------------------->|
+                                                                           |
+                                                                           |
+Line Sink   <------------------------- outbuff  <--------------------------|
+            dequeue_packet_fragment()                enqueue_packet()
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                                          
+test case selection strategy
+  special values
+     instance state
+        interval rule on the number of queued entities in the buffers
+        (ie none, one and many)
+     method parameters
+        enqueue_packet_fragment(chunk): split framing over two chunks
+                                        incorrect framing
+                                           missing PCHAR_ESC 
+                                           missing PCHAR_END
+
+   test cases
+
+      Part A
+      ------
+      call enqueue_packet and enqueue_packet_fragment and
+      check exceptional behaviour
+
+      Part B
+      ------
+      for each of the special state values and special method parameters
+         exercise  method-call sequence represented by Figure 1
+         check normal behaviour (ie Line Source input produces  
+         the correct Line Sink output)
+
+      Part C
+      ------
+         Stress test the module methods using AnyEvent
+         (normal and exceptional behaviour)
+
+       statement coverage measured using cover.
+

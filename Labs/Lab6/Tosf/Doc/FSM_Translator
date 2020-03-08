@@ -1,0 +1,23 @@
+Moore/Mealy Machine Translation
+-------------------------------
+A Moore/Mealy state-machine task has three major components viz,
+a state table, an initial state and the actions associated with a
+synchronous reset.
+
+The tags below show the syntax used to capture these three components.
+
+mmt_TableBegin 
+mmt_TableRow(Current_State, Action(s), Next_State)
+...
+mmt_TableRow(Current_State, Action(s), Next_State)
+mmt_TableEnd
+
+mmt_Reset(Initial_State, Action(s))
+
+Note 1: A file containing a Moore/Mealy state-machine task must have
+extension .mmt and exist in a Fsm directory.
+
+Note 2: The Reset tag is required even if there are no reset actions associated
+with the task.
+
+

@@ -1,0 +1,229 @@
+package Tosf::Fsm::SocConS;
+#================================================================--
+# File Name    : Fsm/SocConS.pm
+#
+# Purpose      : implements socket controller (server)  
+#
+# Author       : Peter Walsh, Vancouver Island University
+#
+# System       : Perl (Linux)
+#
+#=========================================================
+
+$| = 1;
+use strict;
+use warnings;
+
+include(mmt.pl)
+
+use constant MAXLEN => 100;
+use constant MAXTO => 1000;
+use constant FALSE => 0;
+use constant TRUE => 1;
+
+my $handlerName = "IfaceCon";
+
+sub  new {
+   my $class = shift @_;
+   my %params = @_;
+
+   my $self = {
+      taskName => my $taskName,
+      taskSem => my $taskSem,
+      ifaceName => my $ifaceName,
+      handlerName => my $handlerName,
+      handlerSem => my $handlerSem,
+      port => my $port,
+      soc => my $soc,
+      newSoc => my $newSoc,
+      select => my $select = IO::Select->new(),
+      timeout => my $timeout
+   };
+
+   $self->{soc} = undef;
+   $self->{newSoc} = undef;
+   $self->{timeout} = MAXTO;
+
+   if (defined($params{taskName})) {
+      $self->{taskName} = $params{taskName};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Tosf::Fsm::SocConS->new  taskName undefined"));
+   }
+
+   if (defined($params{taskSem})) {
+      $self->{taskSem} = $params{taskSem};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Tosf::Fsm::SocConS->new  taskSem undefined"));
+   }
+
+
+   if (defined($params{ifaceName})) {
+      $self->{ifaceName} = $params{ifaceName};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Tosf::Fsm::SocConS->new  ifaceName undefined"));
+   }
+
+   if (defined($params{port})) {
+      $self->{port} = $params{port};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Tosf::Fsm::SocConS->new  port undefined"));
+   }
+
+   if (defined($params{handlerName})) {
+      $self->{handlerName} = $params{handlerName};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Tosf::Fsm::SocConS->new  handlerName undefined"));
+   }
+
+   if (defined($params{handlerSem})) {
+      $self->{handlerSem} = $params{handlerSem};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Tosf::Fsm::SocConS->new  handlerSem undefined"));
+   }
+
+
+   bless ($self, $class);
+   return $self;
+}
+
+my $buff;
+my $ns;
+my $gpkt;
+my @clients;
+
+mmt_TableBegin 
+
+mmt_TableRow(
+   "READ", 
+   
+   if ($self->{timeout} != 0) {
+      $self->{timeout} = $self->{timeout} - 1;
+   }
+
+   undef($buff);
+   @clients = ($self->{select})->can_read(0);
+   foreach my $fh (@clients) {
+      if ($fh == $self->{newSoc}) {
+         $self->{newSoc}->recv($buff, MAXLEN);
+         last;
+      }
+   }
+
+   if ((defined($buff)) && (length($buff) != 0)) {
+      Tosf::Table::IFACE->enqueue_packet_fragment($self->{ifaceName}, $buff);
+      $self->{timeout} = MAXTO;
+      $workPkt->set_opcode(0);
+      $workPkt->set_iface($self->{ifaceName});
+      Tosf::Table::MESSAGE->enqueue($self->{handlerName}, $workPkt->encode());
+      Tosf::Table::SEMAPHORE->signal(semaphore => $self->{handlerSem});
+   },
+
+   "WRITE"
+)
+
+mmt_TableRow(
+   "WRITE", 
+
+   $buff = Inet::Table::IFACE->dequeue_packet_fragment($self->{ifaceName});
+   if (defined($buff) && (defined$self->{newSoc})) {
+      $self->{newSoc}->write($buff);
+   },
+ 
+   "TOCHECK"
+)
+
+mmt_TableRow(
+   "TOCHECK", 
+
+   if (defined($self->{newSoc}) && ($self->{timeout} != 0) && ($self->{newSoc}->connected())) {
+      $ns = "READ";
+   } else {
+      $ns = "ACCEPT";
+      print("Resetting interface $self->{ifaceName} \n");
+
+   }
+
+   Tosf::Table::SEMAPHORE->wait(semaphore => $self->{taskSem}),
+
+   $ns 
+)
+
+mmt_TableRow(
+   "ACCEPT", 
+
+   Inet::Table::IFACE->set_opened($self->{ifaceName}, FALSE);
+   if (defined($self->{newSoc})) {
+      if ($self->{select}->exists($self->{newSoc})) {
+         ($self->{select})->remove($self->{newSoc});
+         print("Removed reference to interface $self->{ifaceName} from select \n");
+      }
+      print("Closing interface $self->{ifaceName} \n");
+
+      close($self->{newSoc});
+   }
+
+   $self->{newSoc} = undef;
+
+   Tosf::Table::IFACE->flush($self->{ifaceName});
+
+   @clients = ($self->{select})->can_read(0);
+   foreach my $fh (@clients) {
+      if ($fh == $self->{soc}) {
+         $self->{newSoc} = $self->{soc}->accept();
+         $self->{select}->add($self->{newSoc});
+      }
+   }
+   if (defined($self->{newSoc})) {
+      $ns = "READ";
+      $self->{timeout} = MAXTO;
+      Inet::Table::IFACE->set_opened($self->{ifaceName}, TRUE);
+      Inet::Table::IFACE->set_heartbeatCount($self->{ifaceName}, 0);
+      print("Accepted connection on interface $self->{ifaceName} \n");
+   } else {
+      $ns = "ACCEPT";
+   }
+
+   Tosf::Table::SEMAPHORE->wait(semaphore => $self->{taskSem}),
+
+   $ns
+)
+
+mmt_TableRow(
+   "OPEN", 
+
+   undef($self->{soc}); 
+   my $p = $self->{port};
+   print("Try to open  interface $self->{ifaceName} at host localhost / port $p \n");
+   $self->{soc} = new IO::Socket::INET (
+      LocalHost => '',
+      LocalPort => $self->{port},
+      Proto => 'tcp',
+      Reuse => 1,
+      Listen => 0,
+      Timeout  => 0.0001,
+      Blocking => 0
+   );
+
+   if (!defined($self->{soc})) {
+      print("Failed to open interface $self->{ifaceName} \n");
+      die(Tosf::Exception::Trap->new(name => "Fsm::SocConS OPEN socket undefined"));
+   } else {
+      print("Opened interface $self->{ifaceName} at host localhost / port $p\n");
+      $self->{select}->add($self->{soc});
+   }
+
+   Tosf::Table::SEMAPHORE->wait(semaphore => $self->{taskSem}),
+
+   "ACCEPT"
+)
+
+mmt_TableEnd 
+
+mmt_Reset(
+   "OPEN",
+
+   $workPkt = Tosf::Packet::Work->new();
+
+)
+
+1;

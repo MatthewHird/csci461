@@ -1,0 +1,89 @@
+package Tosf::Fsm::ATo;
+#================================================================--
+# File Name    : Fsm/ATo.pm
+#
+# Purpose      : implements aperiodic timeout task ATo
+#
+# Author       : Peter Walsh, Vancouver Island University
+#
+# System       : Perl (Linux)
+#
+#=========================================================
+
+$| = 1;
+use strict;
+use warnings;
+
+include(mmt.pl)
+
+sub  new {
+   my $class = shift @_;
+   my %params = @_;
+
+   my $self = {
+      taskName => my $taskName,
+      taskSem => my $taskSem,
+      timeoutSv => my $timeoutSv,
+      timeOut => my $timeOut
+   };
+
+   if (defined($params{taskName})) {
+      $self->{taskName} = $params{taskName};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Task::ATo taskName undefined"));
+   }
+
+   if (defined($params{taskSem})) {
+      $self->{taskSem} = $params{taskSem};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Task::ATo taskSem undefined"));
+   }
+
+   if (defined($params{timeoutSv})) {
+      $self->{timeoutSv} = $params{timeoutSv};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Task::ATo timeoutSv undefined"));
+   }
+                
+   if (defined($params{timeOut})) {
+      $self->{timeOut} = $params{timeOut}; 
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Task::ATo timeout  undefined"));
+   }
+                
+   bless ($self, $class);
+   return $self;
+}
+
+mmt_TableBegin 
+
+
+mmt_TableRow(
+   "S1",
+
+   Tosf::Table::TASK->set_resumeTime($self->{taskName}, $self->{timeOut});
+   Tosf::Table::SEMAPHORE->wait(semaphore => $self->{taskSem}),
+
+
+   "S2"
+)
+
+mmt_TableRow(
+   "S2", 
+
+   Tosf::Table::SVAR->change($self->{timeoutSv}, 1);   
+   Tosf::Table::SEMAPHORE->wait(semaphore => $self->{taskSem}),
+
+   "S2"
+)
+
+mmt_TableEnd
+
+mmt_Reset(
+   "S1",
+
+   Tosf::Table::SVAR->change($self->{timeoutSv}, 0);   
+   Tosf::Table::SEMAPHORE->signal(semaphore => $self->{taskSem});   
+)
+
+1;

@@ -1,0 +1,89 @@
+package Lab5App::Fsm::FOO;
+#================================================================--
+# File Name    : FOO.pm
+#
+# Purpose      : implements task FOO (to demonstrate
+#                 a simple scheduling trace).
+#
+# Author       : Peter Walsh, Vancouver Island University
+#
+# System       : Perl (Linux)
+#
+#=========================================================
+
+$| = 1;
+use strict;
+use warnings;
+
+include(mmt.pl)
+
+sub  new {
+   my $class = shift @_;
+   my %params = @_;
+
+   my $self = {
+      taskName => my $taskName,
+      taskSem => my $taskSem,
+      steps => my $steps,
+      count => my $count
+   };
+
+   if (defined($params{taskName})) {
+      $self->{taskName} = $params{taskName};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Task::FOO taskName undefined"));
+   }
+
+   if (defined($params{taskSem})) {
+      $self->{taskSem} = $params{taskSem};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Task::FOO taskSem undefined"));
+   }
+
+   if (defined($params{steps})) {
+      $self->{steps} = $params{steps}; 
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Task::FOO steps (execution time) undefined"));
+   }
+                
+   bless ($self, $class);
+   return $self;
+}
+
+mmt_TableBegin 
+
+# For testing only
+mmt_TableRow(
+   "S0",
+
+   print("Current State S0 Next Sate S1 \n"),
+
+   "S1"
+)
+
+mmt_TableRow(
+   "S1",
+  
+   print("FOO: task ", $self->{taskName} , " executing step ", $self->{count} , "\n");
+
+   $self->{count} = $self->{count} + 1;
+
+   if ($self->{count} == $self->{steps}) {
+      $self->{count} = 0;
+      print("FOO: wait on semaphore ", $self->{taskSem} , "\n");
+      Tosf::Table::SEMAPHORE->wait(semaphore => $self->{taskSem});
+   },
+
+  "S1"
+)
+
+mmt_TableEnd 
+
+mmt_Reset(
+   "S1",
+
+   $self->{count} = 0;
+)
+
+
+1;
