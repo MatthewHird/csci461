@@ -31,6 +31,7 @@ sub start {
       name => $task, 
       periodic => TRUE, 
       period => 10,
+      wcet => 10,
       fsm => traceApp::Fsm::FOO->new(
          taskName => $task,
          taskSem => $sem,

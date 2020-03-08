@@ -10,6 +10,9 @@
 # directory where scripts are located and temp file
 MM=../../Tosf/Mmt
 
+# code beautifier 
+INDENT=perltidy -i=3 
+
 MMTSRC = $(wildcard *.mmt)
 MMTBNAME = $(basename $(MMTSRC))
 MMTDEST = $(addsuffix .pm, $(MMTBNAME))
@@ -20,7 +23,11 @@ MMTDEST = $(addsuffix .pm, $(MMTBNAME))
 
 translate: $(MMTDEST) 
 
+tidy:
+	@$(INDENT) $(CUT) *.pm *.mmt
+
 clean:
 	@rm -f *.pm *.ERR
 
 bats:
+

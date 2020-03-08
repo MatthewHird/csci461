@@ -10,16 +10,6 @@
 #   cover --- run cover in all modules
 
 MODULES=Fsm/Verification/FOO \
-	Fsm/Verification/BAR \
-	Fsm/Verification/TOM \
-	Fsm/Verification/JERRY \
-	Fsm/Verification/PRODUCER \
-	Fsm/Verification/CONSUMER \
-	Plant/Verification/SETUP \
-	Plant/Verification/TRACE0 \
-	Plant/Verification/TRACE1 \
-	Plant/Verification/TRACE2 \
-	Plant/Verification/TRACE3 \
 	Fsm \
 
 

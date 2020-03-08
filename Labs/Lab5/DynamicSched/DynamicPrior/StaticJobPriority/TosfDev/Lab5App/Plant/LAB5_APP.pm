@@ -34,7 +34,7 @@ sub start {
         periodic => TRUE,
         period   => 8,
         wcet     => 5,
-        fsm      => traceApp::Fsm::FOO->new(
+        fsm      => Lab5App::Fsm::FOO->new(
             taskName => $task,
             taskSem  => $sem,
             steps    => 5
@@ -54,7 +54,7 @@ sub start {
         periodic => TRUE,
         period   => 7,
         wcet     => 2,
-        fsm      => traceApp::Fsm::FOO->new(
+        fsm      => Lab5App::Fsm::FOO->new(
             taskName => $task,
             taskSem  => $sem,
             steps    => 2

@@ -88,13 +88,15 @@ use constant NUM_PERIODIC_PRIORITY_SLOTS => 1;
 sub leaveScript {
 
     my $s = Tosf::Executive::TIMER->get_schedulerWCET();
-    print("Scheduler WCET = $s (sec) \n");
+    print("\n\nScheduler WCET = $s (sec) \n");
     my $d = Tosf::Executive::TIMER->get_dispatcherWCET();
     print("Dispatcher WCET (including task execution) = $d (sec) \n");
 
     print("\nShutdown Now !!!!! \n");
     exit(0);
 }
+
+print("===============\nRunning Lab5App\n===============\n");
 
 my $tl = Tosf::Exception::Monitor->new(
     fn => sub {

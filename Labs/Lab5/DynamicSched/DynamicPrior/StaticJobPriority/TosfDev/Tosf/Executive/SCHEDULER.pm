@@ -47,8 +47,8 @@ sub tick {
         $blocked  = Tosf::Table::TASK->get_blocked($taskName);
         $rtime    = Tosf::Table::TASK->get_resumeTime($taskName);
         $periodic = Tosf::Table::TASK->get_periodic($taskName);
-        $wcet = Tosf::Table::TASK->get_wcet($wcet);
-        $elapsedTime = Tosf::Table::TASK->get_elapsedTime($elapsedTime);
+        $wcet = Tosf::Table::TASK->get_wcet($taskName);
+        $elapsedTime = Tosf::Table::TASK->get_elapsedTime($taskName);
 
         if ($rtime == 0) {
 
@@ -62,13 +62,14 @@ sub tick {
 
                 Tosf::Table::TASK->set_resumeTime($taskName, $rtime);
                 Tosf::Table::TASK->reset_elapsedTime($taskName);
+                $elapsedTime = Tosf::Table::TASK->get_elapsedTime($taskName);
 
                 $bs = Tosf::Table::TASK->get_blockingSemRef($taskName);
                 $bs->resume($taskName);
                 $blocked = Tosf::Table::TASK->get_blocked($taskName);
 
                 # uncomment the following to run the trace examples
-                #print("SCHEDULER: resume task $taskName  \n");
+                print("SCHEDULER: resume task $taskName  \n");
 
             } else {
                 die(Tosf::Exception::Trap->new(
@@ -93,7 +94,9 @@ sub tick {
                 Tosf::Table::PQUEUE->enqueue('pTask', $taskName, $laxity);
 
                 # uncomment the following to run the trace examples
-                #print("SCHEDULER: ready periodic task $taskName with priority $rtime \n");
+                print("SCHEDULER: Task Name => " . $taskName . "; Laxity => " . $laxity . "\n");
+                # print("SCHEDULER: ready periodic task $taskName with priority $laxity \n");
+                
             } else {
                 $inq = Tosf::Table::QUEUE->is_member('apTask', $taskName);
 
