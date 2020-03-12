@@ -1,0 +1,82 @@
+package goldApp::Fsm::BPING;
+#================================================================--
+# File Name    : Fsm/BPING.pm
+#
+# Purpose      : implements batch ping
+#
+# Author       : Peter Walsh, Vancouver Island University
+#
+# System       : Perl (Linux)
+#
+#=========================================================
+
+$| = 1;
+use strict;
+use warnings;
+
+include(mmt.pl)
+
+sub  new {
+   my $class = shift @_;
+   my %params = @_;
+
+   my $self = {
+      taskName => my $taskName, 
+      taskSem => my $taskSem,
+      handlerName => my $handlerName, 
+      handlerSem => my $handlerSem 
+   };
+
+   if (defined($params{taskName})) {
+      $self->{taskName} = $params{taskName};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Fsm::BPING->new  taskName undefined"));
+   }
+
+   if (defined($params{taskSem})) {
+      $self->{taskSem} = $params{taskSem};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Fsm::BPING->new  taskSem undefined"));
+   }
+
+   if (defined($params{handlerName})) {
+      $self->{handlerName} = $params{handlerName};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Fsm::BPING->new  handlerName undefined"));
+   }
+
+   if (defined($params{handlerSem})) {
+      $self->{handlerSem} = $params{handlerSem};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Fsm::BPING->new  handlerSem undefined"));
+   }
+
+   bless ($self, $class);
+   return $self;
+}
+
+
+my $workPkt;
+
+mmt_TableBegin 
+
+mmt_TableRow(
+   "S0", 
+   
+   Tosf::Table::MESSAGE->enqueue($self->{handlerName}, $workPkt->encode());
+   Tosf::Table::SEMAPHORE->signal(semaphore => $self->{handlerSem});
+   Tosf::Table::SEMAPHORE->wait(semaphore => $self->{taskSem}) ,
+   
+   "S0"
+)
+
+mmt_TableEnd 
+
+mmt_Reset(
+   "S0",
+
+   $workPkt = Tosf::Packet::Work->new();
+   $workPkt->set_opcode(3); # STATUS REQ
+)
+
+1;

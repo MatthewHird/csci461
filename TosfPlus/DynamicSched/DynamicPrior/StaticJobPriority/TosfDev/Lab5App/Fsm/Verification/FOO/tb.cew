@@ -1,0 +1,78 @@
+#================================================================--
+# File Name    : tb.cew
+#
+# Purpose      : unit testing (template)
+#
+# Author       : Peter Walsh, Vancouver Island University
+#
+# System       : Perl (Linux)
+#
+#------------------------------------------------------------------
+# Revision List
+# Version      Author  Date    Changes
+# 1.0          PW      Oct 12  New version
+#================================================================--
+
+$|=1;
+use strict;
+use warnings;
+
+include(cew.pl)
+
+use lib '../../../../';
+use Tosf::Exception::Trap;
+use Tosf::Exception::Monitor;
+use Try::Tiny;
+use Time::HiRes qw (ualarm usleep gettimeofday tv_interval);
+use traceApp::Fsm::FOO;
+use traceApp::Plant::TRACE0;
+use Tosf::Table::TASK;
+use Tosf::Table::SEMAPHORE;
+use Tosf::Record::Task;
+use Tosf::Record::Semaphore;
+use Tosf::Collection::Queue;
+use Tosf::Collection::STATUS;
+
+cew_Variables
+
+use constant DEADLINE => 0.00015; # (sec)
+use constant NUMTESTS => 50000;
+
+sub loadFsmState {
+   my $key = shift @_;
+   my $ns = shift @_;
+
+   Tosf::Table::TASK->set_nextState($key, $ns);
+}
+
+sub advanceOneFsmCycle {
+   my $key = shift @_;
+
+   my $fsm;
+
+   Tosf::Collection::STATUS->set_currentExecutingTask($key);
+   $fsm = Tosf::Table::TASK->get_fsm($key);
+   Tosf::Table::TASK->set_nextState($key, $fsm->tick(Tosf::Table::TASK->get_nextState($key)));
+
+}
+
+my $s0 = Tosf::Exception::Monitor->new(
+   fn => sub {
+      traceApp::Plant::TRACE0->start();
+
+      for (my $i=0; $i<NUMTESTS; $i++) {
+         cew_Tcase(advanceOneFsmCycle("t3"), 0, DEADLINE)
+      }
+
+      # for testing only
+      print("For Testing Only \n");
+      loadFsmState("t3", "S0");
+      cew_Tcase(advanceOneFsmCycle("t3"), 0, DEADLINE)
+      cew_Tcase(advanceOneFsmCycle("t3"), 0, DEADLINE)
+      cew_Tcase(advanceOneFsmCycle("t3"), 0, DEADLINE)
+   }
+);
+
+$s0->run();
+
+cew_Summary

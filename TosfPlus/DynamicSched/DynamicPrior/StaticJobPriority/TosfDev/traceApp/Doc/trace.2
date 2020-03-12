@@ -1,0 +1,50 @@
+[3J[H[2J
+Boot Menu
+
+	Trace  0
+	Trace  1
+	Trace  2
+	Trace  3
+
+Enter selection (CTRL C to exit) 
+usec 1000000 
+------------------ Tick 0 -----------
+SCHEDULER: resume task t3  
+SCHEDULER: ready periodic task t3 with priority 10 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 0 
+TOM task t3 executing step 0
+------------------ Tick 1 -----------
+SCHEDULER: ready periodic task t3 with priority 9 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 0 
+TOM task t3 executing step 1
+------------------ Tick 2 -----------
+SCHEDULER: ready periodic task t3 with priority 8 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 0 
+TOM task t3 executing step 2
+------------------ Tick 3 -----------
+SCHEDULER: ready periodic task t3 with priority 7 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 0 
+TOM task t3 executing step 3
+------------------ Tick 4 -----------
+SCHEDULER: ready periodic task t3 with priority 6 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 0 
+TOM task t3 executing step 4
+------------------ Tick 5 -----------
+SCHEDULER: ready periodic task t3 with priority 5 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 0 
+TOM task t3 executing step 5
+TOM: signal semaphore  t5Sem 
+TOM: signal semaphore  t5Sem 
+TOM: signal semaphore  t5Sem 
+TOM: signal semaphore  t5Sem 
+FATAL ERROR (ty1): Record::Semaphore->signal signal when value == max  *** no description
+Scheduler WCET = 0.000486 (sec) 
+Dispatcher WCET (including task execution) = 0.000206 (sec) 
+
+Shutdown Now !!!!! 

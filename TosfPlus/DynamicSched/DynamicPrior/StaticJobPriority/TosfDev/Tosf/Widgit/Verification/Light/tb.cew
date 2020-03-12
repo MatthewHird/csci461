@@ -1,0 +1,28 @@
+#================================================================--
+# File Name    : tb.cew
+#
+# Purpose      : unit testing (template)
+#
+# Author       : Peter Walsh, Vancouver Island University
+#
+# System       : Perl (Linux)
+#
+#------------------------------------------------------------------
+# Revision List
+# Version      Author  Date    Changes
+# 1.0          PW      Oct 12  New version
+#================================================================--
+
+$|=1;
+use strict;
+use warnings;
+
+include(cew.pl)
+
+use lib '../../../../';
+use Tosf::Exception::Trap;
+use Try::Tiny;
+
+cew_Variables
+
+cew_Summary

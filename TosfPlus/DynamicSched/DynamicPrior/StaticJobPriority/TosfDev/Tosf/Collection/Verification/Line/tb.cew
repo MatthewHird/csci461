@@ -1,0 +1,158 @@
+#================================================================--
+# File Name    : tb.cew
+#
+# Purpose      : unit testing
+#
+# Author       : Peter Walsh, Vancouver Island University
+#
+# System       : Perl (Linux)
+#
+#================================================================--
+
+$|=1;
+use strict;
+use warnings;
+
+include(cew.pl)
+
+use lib '../../../../';
+use Tosf::Collection::Line;
+use Tosf::Exception::Trap;
+use Try::Tiny;
+use AnyEvent;
+
+use constant PCHAR_ESC => '_G_';
+use constant PCHAR_END => '_H_';
+use constant SEPSIZE => 6; # |PCHAR_ESC| + |PCHAR_END|
+# note, test cases are only valid for default  packing strings
+use constant MAX => 10000;
+
+cew_Variables
+
+sub leaveScript {
+   cew_Summary
+   print("Bye\n");
+   exit(0);
+}
+
+$SIG{INT} = sub {leaveScript();};
+
+########
+# Part A
+########
+
+my $p = Tosf::Collection::Line->new();
+
+$p->enqueue_packet_fragment('B');
+$p->enqueue_packet_fragment(PCHAR_ESC . 'A' . PCHAR_END);
+cew_Ncase(, $p->dequeue_packet(), 'A');
+
+$p->enqueue_packet_fragment(PCHAR_ESC . 'A' . PCHAR_ESC . 'B' . PCHAR_END);
+cew_Ncase(, $p->dequeue_packet(), 'AB');
+
+$p->enqueue_packet_fragment(PCHAR_ESC . 'A' . PCHAR_END . 'B' . PCHAR_END);
+cew_Ncase(, $p->dequeue_packet(), 'A');
+
+my $x = Tosf::Collection::Line->new(maxbuff => SEPSIZE);
+cew_Ecase($x->enqueue_packet('A'), "fullbuff")
+
+#default outbuff size
+$x = Tosf::Collection::Line->new();
+cew_Ecase($x->enqueue_packet('A'x(MAX - SEPSIZE +1)), "fullbuff")
+
+$x = Tosf::Collection::Line->new(maxbuff => 9);
+cew_Ecase($x->enqueue_packet_fragment('AAAAAAAAAA'), "fullbuff")
+
+#default inbuff size
+$x = Tosf::Collection::Line->new();
+cew_Ecase($x->enqueue_packet_fragment('A'x(MAX+1)), "fullbuff")
+
+########
+# Part B
+########
+
+# One enqueued entity .. Good framing
+
+$x = Tosf::Collection::Line->new();
+cew_Ncase(, $x->get_inbuff_size(), 0);
+cew_Ncase(, $x->get_outbuff_size(), 0);
+cew_Ncase(, $x->dequeue_packet(), undef);
+cew_Ncase(, $x->dequeue_packet_fragment(1), undef)
+
+$x->enqueue_packet_fragment(PCHAR_ESC . ('A'x8) . PCHAR_END);
+cew_Ncase(, $x->dequeue_packet(), ('A'x8))
+
+$x->enqueue_packet('A');
+cew_Ncase(, $x->dequeue_packet_fragment(SEPSIZE+1), PCHAR_ESC. ('A') .PCHAR_END)
+
+# One enqueued entity .. Bad framing
+# To be completed
+
+# Two enqueued entities .. Good framing
+
+$x = Tosf::Collection::Line->new();
+$x->enqueue_packet_fragment(PCHAR_ESC . ('A') . PCHAR_END);
+cew_Ncase(, $x->get_inbuff_size(), SEPSIZE+1);
+$x->enqueue_packet_fragment(PCHAR_ESC . ('B') . PCHAR_END);
+cew_Ncase(, $x->get_inbuff_size(), 2*(SEPSIZE+1));
+
+cew_Ncase(, $x->dequeue_packet(), ('A'))
+cew_Ncase(, $x->get_inbuff_size(), SEPSIZE+1);
+cew_Ncase(, $x->dequeue_packet(), ('B'))
+cew_Ncase(, $x->get_inbuff_size(), 0);
+
+$x->enqueue_packet('A');
+cew_Ncase(, $x->get_outbuff_size(), SEPSIZE+1);
+$x->enqueue_packet('B');
+cew_Ncase(, $x->get_outbuff_size(), 2*(SEPSIZE+1));
+cew_Ncase(, $x->dequeue_packet_fragment(SEPSIZE+1), PCHAR_ESC. ('A') .PCHAR_END)
+cew_Ncase(, $x->get_outbuff_size(), SEPSIZE+1);
+cew_Ncase(, $x->dequeue_packet_fragment(SEPSIZE+1), PCHAR_ESC. ('B') .PCHAR_END)
+cew_Ncase(, $x->get_outbuff_size(), 0);
+
+# Two enqueued entities .. Bad framing
+# To be completed
+
+# Many enqueued entities .. Good framing
+# To be completed
+
+# Many enqueued entities .. Bad framing
+# To be completed
+
+########
+# Part C
+########
+
+my $z_event;
+my $f_event;
+my $g_event;
+
+#begin implicit while (1) event loop ++++++++
+$z_event = AnyEvent->condvar;
+
+my $etime=0;
+my $stress_time=2;
+
+$f_event = AnyEvent->timer (after => 1,
+   interval => 5,
+   cb => sub {
+      $etime++;
+      print("Stress test time remaining: ", 5*($stress_time-$etime), " seconds \n");
+      if ($etime==$stress_time) {
+         leaveScript();
+       }
+                  
+   }
+);
+
+$g_event = AnyEvent->timer (after => 1,
+   interval => 20,
+   cb => sub {
+      cew_Ncase(, 0, 0)
+      # To be completed
+   }
+);
+
+#end implicit while (1) event loop ++++++++
+$z_event->recv;
+

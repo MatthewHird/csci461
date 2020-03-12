@@ -1,0 +1,136 @@
+package tlightApp::Fsm::CCON;
+#================================================================--
+# File Name    : CCON.pm
+#
+# Purpose      : implements traffic light task CCON (controller)
+#
+# Author       : Peter Walsh, Vancouver Island University
+#
+# System       : Perl (Linux)
+#
+#=========================================================
+
+$| = 1;
+use strict;
+use warnings;
+
+include(mmt.pl)
+
+sub  new {
+   my $class = shift @_;
+   my %params = @_;
+
+   my $self = {
+      taskName => my $taskName,
+      taskSem => my $taskSem
+   };
+
+   if (defined($params{taskName})) {
+      $self->{taskName} = $params{taskName};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Task::CCON taskName undefined"));
+   }
+
+   if (defined($params{taskSem})) {
+      $self->{taskSem} = $params{taskSem};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Task::CCON taskSem undefined"));
+   }
+
+
+   bless ($self, $class);
+   return $self;
+}
+
+mmt_TableBegin 
+
+my $ns;
+
+mmt_TableRow(
+   "HG", 
+   
+   Tosf::Table::QUEUE->enqueue("TLQ", "HG");
+   Tosf::Table::SEMAPHORE->signal(semaphore => "CentralDispSem");
+   my $car = Tosf::Table::SVAR->get_value("sv_car");
+   my $lto = Tosf::Table::SVAR->get_value("sv_lto");
+   my $sto = Tosf::Table::SVAR->get_value("sv_sto");
+   if (!($car && $lto)) {
+      $ns = "HG";
+   } else {
+      $ns = "HY";
+      Tosf::Table::TASK->reset("Sto");
+      Tosf::Table::TASK->reset("Lto");
+   }
+   Tosf::Table::SEMAPHORE->wait(semaphore => $self->{taskSem}),
+
+   $ns
+)
+
+
+mmt_TableRow(
+   "HY", 
+
+   Tosf::Table::QUEUE->enqueue("TLQ", "HY");
+   Tosf::Table::SEMAPHORE->signal(semaphore => "CentralDispSem");
+   my $car = Tosf::Table::SVAR->get_value("sv_car");
+   my $lto = Tosf::Table::SVAR->get_value("sv_lto");
+   my $sto = Tosf::Table::SVAR->get_value("sv_sto");
+   if (!$sto) {
+      $ns = "HY";
+   } else {
+      $ns = "FG";
+      Tosf::Table::TASK->reset("Sto");
+      Tosf::Table::TASK->reset("Lto");
+   }
+   Tosf::Table::SEMAPHORE->wait(semaphore => $self->{taskSem}),
+
+   $ns
+)
+
+mmt_TableRow(
+   "FG", 
+
+   Tosf::Table::QUEUE->enqueue("TLQ", "FG");
+   Tosf::Table::SEMAPHORE->signal(semaphore => "CentralDispSem");
+   my $car = Tosf::Table::SVAR->get_value("sv_car");
+   my $lto = Tosf::Table::SVAR->get_value("sv_lto");
+   my $sto = Tosf::Table::SVAR->get_value("sv_sto");
+   if (($car || (!$sto)) && (!$lto)) {
+      $ns = "FG";
+   } else {
+      $ns = "FY";
+      Tosf::Table::TASK->reset("Sto");
+      Tosf::Table::TASK->reset("Lto");
+   }
+   Tosf::Table::SEMAPHORE->wait(semaphore => $self->{taskSem}),
+
+   $ns
+)
+
+mmt_TableRow(
+   "FY", 
+
+   Tosf::Table::QUEUE->enqueue("TLQ", "FY");
+   Tosf::Table::SEMAPHORE->signal(semaphore => "CentralDispSem");
+   my $car = Tosf::Table::SVAR->get_value("sv_car");
+   my $lto = Tosf::Table::SVAR->get_value("sv_lto");
+   my $sto = Tosf::Table::SVAR->get_value("sv_sto");
+   if (!$sto) {
+      $ns = "FY";
+   } else {
+      $ns = "HG";
+      Tosf::Table::TASK->reset("Sto");
+      Tosf::Table::TASK->reset("Lto");
+   }
+   Tosf::Table::SEMAPHORE->wait(semaphore => $self->{taskSem}),
+
+  $ns
+)
+
+mmt_TableEnd
+
+mmt_Reset(
+   "HG",
+)
+
+1;

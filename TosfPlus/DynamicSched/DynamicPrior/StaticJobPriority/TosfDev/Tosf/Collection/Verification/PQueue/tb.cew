@@ -1,0 +1,43 @@
+#================================================================--
+# File Name    : tb.cew
+#
+# Purpose      : unit testing (template)
+#
+# Author       : Peter Walsh, Vancouver Island University
+#
+# System       : Perl (Linux)
+#
+#------------------------------------------------------------------
+# Revision List
+# Version      Author  Date    Changes
+# 1.0          PW      Oct 12  New version
+#================================================================--
+
+$|=1;
+use strict;
+use warnings;
+
+include(cew.pl)
+
+use lib '../../../../';
+use Tosf::Collection::PQueue;
+use Tosf::Exception::Trap;
+use Try::Tiny;
+
+cew_Variables
+
+my $x = Tosf::Collection::PQueue->new();
+my $y = Tosf::Collection::PQueue->new();
+
+cew_Ecase(
+   $x->enqueue("Hello", 0);
+   $x->enqueue("world", 0);
+   $y->enqueue(undef, 0);
+   $y->enqueue("Demo3", 0),
+
+   "novalue"
+)
+
+cew_Ncase(, $x->get_siz(), 2, !=)
+
+cew_Summary

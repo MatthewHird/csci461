@@ -1,0 +1,177 @@
+package goldApp::Fsm::TCLIENTCONTROL;
+#================================================================--
+# File Name    : TCLIENTCONTROL.pm
+#
+# Purpose      : implements test client control 
+#
+# Author       : Peter Walsh, Vancouver Island University
+#
+# System       : Perl (Linux)
+#
+#=========================================================
+
+$| = 1;
+use strict;
+use warnings;
+
+include(mmt.pl)
+
+my $etime;
+my $ticks;
+my $regReq;
+my $regAck;
+my $to;
+my $go;
+my $stop;
+my $workPkt = Tosf::Packet::Work->new();
+
+
+sub  new {
+   my $class = shift @_;
+   my %params = @_;
+
+   my $self = {
+      taskName => my $taskName,
+      taskSem => my $taskSem,
+      handlerName => my $handlerName,
+      handlerSem => my $handlerSem,
+      period => my $period
+   };
+
+   if (defined($params{handlerName})) {
+      $self->{handlerName} = $params{handlerName};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Fsm::TCLIENTCONTROL->new  handlerName undefined"));
+   }
+
+   if (defined($params{handlerSem})) {
+      $self->{handlerSem} = $params{handlerSem};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Fsm::TCLIENTCONTROL->new  handlerSem undefined"));
+   }
+
+   if (defined($params{taskName})) {
+      $self->{taskName} = $params{taskName};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Task::TCLIENTCONTROL taskName undefined"));
+   }
+
+   if (defined($params{taskSem})) {
+      $self->{taskSem} = $params{taskSem};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Task::TCLIENTCONTROL taskSem undefined"));
+   }
+
+
+   if (defined($params{period})) {
+      $self->{period} = $params{period};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Task::TCLIENTCONTROL period undefined"));
+   }
+
+   bless ($self, $class);
+   return $self;
+}
+
+mmt_TableBegin 
+
+my $ns;
+
+mmt_TableRow(
+   "Gray", 
+
+   $regReq = Tosf::Table::SVAR->get_value("sv_regReq");
+   if (!($regReq)) {
+      $ns = "Gray";
+   } else {
+      Tosf::Table::TASK->reset("Tout");
+      #goldApp::Plant::LIGHTS->set_lights("red", "gray", "gray"); 
+      $ns = "Red";
+      $workPkt->set_opcode(1); # registration
+      Tosf::Table::MESSAGE->enqueue($self->{handlerName}, $workPkt->encode());
+      Tosf::Table::SEMAPHORE->signal(semaphore => $self->{handlerSem});
+
+   }
+   Tosf::Table::SEMAPHORE->wait(semaphore => $self->{taskSem}),
+
+   $ns
+)
+
+mmt_TableRow(
+   "Red", 
+   
+   $regAck = Tosf::Table::SVAR->get_value("sv_regAck");
+   $to = Tosf::Table::SVAR->get_value("sv_to");
+   if ($to) {
+      $ns = "Gray";
+      Tosf::Table::TASK->reset($self->{taskName});
+   } elsif (!$regAck) {
+      $ns = "Red";
+   } else {
+      #goldApp::Plant::LIGHTS->set_lights("gray", "yellow", "gray"); 
+      $ns = "Amber";
+   }
+   Tosf::Table::SEMAPHORE->wait(semaphore => $self->{taskSem}),
+
+   $ns
+)
+
+
+mmt_TableRow(
+   "Amber", 
+
+   $go = Tosf::Table::SVAR->get_value("sv_go");
+   if (!$go) {
+      $ns = "Amber";
+   } else { 
+      #goldApp::Plant::LIGHTS->set_lights("gray", "gray", "green"); 
+      Tosf::Table::TASK->reset("Tout");
+      $ticks = 0;
+      #goldApp::Plant::LIGHTS->set_buttons("white", "white");
+      Tosf::Table::SVAR->assign("sv_stop", 0);
+      $ns = "Green";
+   }
+   Tosf::Table::SEMAPHORE->wait(semaphore => $self->{taskSem}),
+
+   $ns
+)
+
+mmt_TableRow(
+   "Green", 
+
+   $stop = Tosf::Table::SVAR->get_value("sv_stop");
+   $to = Tosf::Table::SVAR->get_value("sv_to");
+   $ticks = $ticks + 1;
+   if (!$stop &&  !$to) {
+      $ns = "Green";
+   } else  {
+      #goldApp::Plant::LIGHTS->set_lights("red", "gray", "gray"); 
+      Tosf::Table::TASK->reset($self->{taskName});
+      $workPkt->set_opcode(2);
+      $workPkt->set_msg($self->{period} * $ticks);
+      Tosf::Table::MESSAGE->enqueue($self->{handlerName}, $workPkt->encode());
+      Tosf::Table::SEMAPHORE->signal(semaphore => $self->{handlerSem});
+      print("Time = ", $self->{period} * $ticks, " \n");
+      $ns = "Red";
+   } 
+   Tosf::Table::SEMAPHORE->wait(semaphore => $self->{taskSem}),
+
+   $ns
+)
+
+mmt_TableEnd
+
+mmt_Reset(
+   "Gray",
+
+   #goldApp::Plant::LIGHTS->set_lights("gray", "gray", "gray");
+   #goldApp::Plant::LIGHTS->set_buttons("white", "white");
+   Tosf::Table::SVAR->assign("sv_go", 0);
+   Tosf::Table::SVAR->assign("sv_to", 0);
+   Tosf::Table::SVAR->assign("sv_stop", 0);
+   Tosf::Table::SVAR->assign("sv_regReq", 1); # NB
+   Tosf::Table::SVAR->assign("sv_regAck", 0);
+
+)
+
+1;

@@ -1,0 +1,108 @@
+package Tosf::Fsm::To;
+#================================================================--
+# File Name    : Fsm/To.pm
+#
+# Purpose      : implements timeout task To
+#
+# Author       : Peter Walsh, Vancouver Island University
+#
+# System       : Perl (Linux)
+#
+#=========================================================
+
+$| = 1;
+use strict;
+use warnings;
+
+include(mmt.pl)
+
+sub  new {
+   my $class = shift @_;
+   my %params = @_;
+
+   my $self = {
+      taskName => my $taskName,
+      taskSem => my $taskSem,
+      timeoutSv => my $timeoutSv,
+      count => my $count,
+      timeOut => my $timeOut
+   };
+
+   if (defined($params{taskName})) {
+      $self->{taskName} = $params{taskName};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Task::To taskName undefined"));
+   }
+
+   if (defined($params{taskSem})) {
+      $self->{taskSem} = $params{taskSem};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Task::To taskSem undefined"));
+   }
+
+   if (defined($params{timeoutSv})) {
+      $self->{timeoutSv} = $params{timeoutSv};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Task::To timeoutSv undefined"));
+   }
+                
+   if (defined($params{timeOut})) {
+      $self->{timeOut} = $params{timeOut}; 
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Task::To timeout  undefined"));
+   }
+                
+   bless ($self, $class);
+   return $self;
+}
+
+sub nextState {
+   my $c = shift @_;
+   my $t = shift @_;
+
+   if ($c == $t) {
+      return("S2");
+   } 
+
+   return("S1");
+}
+
+mmt_TableBegin 
+
+my $ns;
+
+mmt_TableRow(
+   "S1",
+
+   $self->{count} = $self->{count} + 1;
+   if ($self->{count} == $self->{timeOut}) {
+      Tosf::Table::SVAR->assign($self->{timeoutSv}, 1);   
+      $ns = "S2";
+   } else {
+      $ns = "S1";
+   }
+
+   Tosf::Table::SEMAPHORE->wait(semaphore => $self->{taskSem}),
+
+   $ns
+)
+
+mmt_TableRow(
+   "S2", 
+
+   Tosf::Table::SEMAPHORE->wait(semaphore => $self->{taskSem}),
+
+   "S2"
+)
+
+mmt_TableEnd
+
+mmt_Reset(
+   "S1",
+
+   $self->{count} = 0;
+   Tosf::Table::SVAR->change($self->{timeoutSv}, 0)   
+)
+
+
+1;

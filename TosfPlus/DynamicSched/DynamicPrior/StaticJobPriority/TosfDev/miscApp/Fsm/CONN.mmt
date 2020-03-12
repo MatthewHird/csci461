@@ -1,0 +1,145 @@
+package miscApp::Fsm::CONN;
+#================================================================--
+# File Name    : CONN.pm
+#
+# Purpose      : implements task CONN (controller)
+#
+# Author       : Peter Walsh, Vancouver Island University
+#
+# System       : Perl (Linux)
+#
+#=========================================================
+
+$| = 1;
+use strict;
+use warnings;
+
+include(mmt.pl)
+
+my $etime;
+my $ticks;
+my $x;
+my $lto;
+my $sto;
+
+sub  new {
+   my $class = shift @_;
+   my %params = @_;
+
+   my $self = {
+      taskName => my $taskName,
+      taskSem => my $taskSem,
+      period => my $period
+   };
+
+   if (defined($params{taskName})) {
+      $self->{taskName} = $params{taskName};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Task::CONN taskName undefined"));
+   }
+
+   if (defined($params{taskSem})) {
+      $self->{taskSem} = $params{taskSem};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Task::CONN taskSem undefined"));
+   }
+
+
+   if (defined($params{period})) {
+      $self->{period} = $params{period};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Task::CONN period undefined"));
+   }
+
+   bless ($self, $class);
+   return $self;
+}
+
+mmt_TableBegin 
+
+my $ns;
+
+mmt_TableRow(
+   "Red", 
+   
+   $x = Tosf::Table::SVAR->get_value("sv_react");
+   $lto = Tosf::Table::SVAR->get_value("sv_lto");
+   $sto = Tosf::Table::SVAR->get_value("sv_sto");
+   if (!($x && $sto)) {
+      $ns = "Red";
+   } else {
+      miscApp::Plant::LIGHTS->set_lights("gray", "yellow", "gray"); 
+      Tosf::Table::TASK->reset("STO");
+      Tosf::Table::TASK->reset("LTO");
+      $ns = "Amber";
+   }
+   Tosf::Table::SEMAPHORE->wait(semaphore => $self->{taskSem}),
+
+   $ns
+)
+
+
+mmt_TableRow(
+   "Amber", 
+
+   $x = Tosf::Table::SVAR->get_value("sv_react");
+   $lto = Tosf::Table::SVAR->get_value("sv_lto");
+   $sto = Tosf::Table::SVAR->get_value("sv_sto");
+   if ($x && !$lto) {
+      $ns = "Amber";
+   } elsif (!$x && !$lto) {
+      miscApp::Plant::LIGHTS->set_lights("red", "gray", "gray"); 
+      print("Error, premature click\n");
+      Tosf::Table::TASK->reset("STO");
+      Tosf::Table::TASK->reset("LTO");
+      $ns = "Red";
+   } else { # lto
+      miscApp::Plant::LIGHTS->set_lights("gray", "gray", "green"); 
+      Tosf::Table::TASK->reset("STO");
+      Tosf::Table::TASK->reset("LTO");
+      $ticks = 0;
+      $ns = "Green";
+   }
+   Tosf::Table::SEMAPHORE->wait(semaphore => $self->{taskSem}),
+
+   $ns
+)
+
+mmt_TableRow(
+   "Green", 
+
+   $x = Tosf::Table::SVAR->get_value("sv_react");
+   $lto = Tosf::Table::SVAR->get_value("sv_lto");
+   $sto = Tosf::Table::SVAR->get_value("sv_sto");
+   $ticks = $ticks + 1;
+   if ($x && !$lto) {
+      $ns = "Green";
+   } elsif ($x && $lto) {
+      miscApp::Plant::LIGHTS->set_lights("red", "gray", "gray"); 
+      print("Error, click time-out\n");
+      Tosf::Table::TASK->reset("STO");
+      Tosf::Table::TASK->reset("LTO");
+      $ns = "Red";
+   } else { # !$x 
+      miscApp::Plant::LIGHTS->set_lights("red", "gray", "gray"); 
+      $etime = $ticks * $self->{period};
+      print("Reaction Time (in seconds):  $etime \n");   
+      Tosf::Table::TASK->reset("STO");
+      Tosf::Table::TASK->reset("LTO");
+      $ns = "Red";
+   }
+   Tosf::Table::SEMAPHORE->wait(semaphore => $self->{taskSem}),
+
+   $ns
+)
+
+mmt_TableEnd
+
+mmt_Reset(
+   "Red",
+
+   miscApp::Plant::LIGHTS->set_lights("red", "gray", "gray");
+
+)
+
+1;

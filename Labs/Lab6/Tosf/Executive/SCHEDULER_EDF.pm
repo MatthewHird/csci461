@@ -1,6 +1,6 @@
-package Tosf::Executive::SCHEDULER;
+package Tosf::Executive::SCHEDULER_EDF;
 #================================================================--
-# File Name    : SCHEDULER.pm
+# File Name    : SCHEDULER_EDF.pm
 #
 # Purpose      : EDF schedular
 #

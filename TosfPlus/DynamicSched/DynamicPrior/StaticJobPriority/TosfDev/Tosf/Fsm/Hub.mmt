@@ -1,0 +1,116 @@
+package Inet::Fsm::Hub;
+#================================================================--
+# File Name    : Fsm/Hub.pm
+#
+# Purpose      : Hub Controller
+#
+# Author       : Peter Walsh, Vancouver Island University
+#
+# System       : Perl (Linux)
+#
+#=========================================================
+
+$| = 1;
+use strict;
+use warnings;
+
+include(mmt.pl)
+
+use constant  TRUE => 1;
+use constant  FALSE => 0;
+
+sub  new {
+   my $class = shift @_;
+   my %params = @_;
+
+   my $self = {
+      taskName => my $taskName
+   };
+
+   if (defined($params{taskName})) {
+      $self->{taskName} = $params{taskName};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Fsm::Hub->new  taskName undefined"));
+   }
+
+   bless ($self, $class);
+   return $self;
+}
+
+my $raw;
+my @keys;
+my $k;
+my $msg;
+my $opcode;
+my $iface;
+my $streamIface;
+my $ns;
+my $gpkt;
+
+mmt_TableBegin 
+
+mmt_TableRow(
+   "SIN",
+
+    if (Inet::Collection::FLAG->get_trace()) {
+      print("In Hub\n");
+    }
+
+   $raw = Tosf::Table::MESSAGE->dequeue($self->{taskName});
+   $gpkt->decode($raw);
+   $opcode = $gpkt->get_opcode();
+   $iface = $gpkt->get_interface();
+   if ($opcode == 0) {
+      $ns = "OP0";
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Fsm::Hub->new  invalid opcode $opcode"));
+   },
+
+   $ns
+)
+
+mmt_TableRow(
+   "SOUT",
+
+   if (Inet::Collection::FLAG->get_trace()) {
+      print("Out Hub\n");
+   }
+
+   Tosf::Table::MESSAGE->wait($self->{taskName}),
+
+   "SIN"
+)
+
+mmt_TableRow(
+   "OP0", 
+   
+   $streamIface = Inet::Table::IFACE->get_streamIface();
+   @keys = Inet::Table::IFACE->get_keys();
+   foreach $k (@keys) {
+      if (($k ne $iface) && ($k ne $streamIface) && (Inet::Table::IFACE->get_opened($k)) ) {
+         if (!Inet::Table::IFACE->get_dropFlag($k)) {
+            $gpkt->set_opcode(1);
+            $gpkt->set_interface($k);
+            Tosf::Table::MESSAGE->enqueue("IfaceCon", $gpkt->encode());
+            Tosf::Table::MESSAGE->signal("IfaceCon");
+            if (Inet::Table::IFACE->get_duplicateFlag($k)) {
+               Tosf::Table::MESSAGE->enqueue("IfaceCon", $gpkt->encode());
+               Tosf::Table::MESSAGE->signal("IfaceCon");
+            }
+         }
+      }
+   },
+
+   "SOUT"
+)
+
+mmt_TableEnd 
+
+mmt_Reset(
+   "SIN",
+
+   Tosf::Table::MESSAGE->wait($self->{taskName});
+   $gpkt = Inet::Packet::Generic->new();
+)
+
+1;

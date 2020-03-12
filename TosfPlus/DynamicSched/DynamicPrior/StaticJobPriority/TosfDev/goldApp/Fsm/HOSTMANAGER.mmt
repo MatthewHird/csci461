@@ -1,0 +1,186 @@
+package goldApp::Fsm::HOSTMANAGER;
+#================================================================--
+# File Name    : HOSTMANAGER.pm
+#
+# Purpose      : Goldberg host manager
+#
+# Author       : Peter Walsh, Vancouver Island University
+#
+# System       : Perl (Linux)
+#
+#=========================================================
+
+$| = 1;
+use strict;
+use warnings;
+
+include(mmt.pl)
+
+use constant  TRUE => 1;
+use constant  FALSE => 0;
+use constant SERVERMAC => 0;
+
+sub  new {
+   my $class = shift @_;
+   my %params = @_;
+
+   my $self = {
+      taskName => my $taskName,
+      taskSem => my $taskSem,
+      handlerName => my $handlerName,
+      handlerSem => my $handlerSem
+   };
+
+   if (defined($params{handlerName})) {
+      $self->{handlerName} = $params{handlerName};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Fsm::HOSTMANAGER->new  handlerName undefined"));
+   }
+
+   if (defined($params{handlerSem})) {
+      $self->{handlerSem} = $params{handlerSem};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Fsm::HOSTMANAGER->new  handlerSem undefined"));
+   }
+
+   if (defined($params{taskName})) {
+      $self->{taskName} = $params{taskName};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Fsm::HOSTMANAGER->new  taskName undefined"));
+   }
+
+   if (defined($params{taskSem})) {
+      $self->{taskSem} = $params{taskSem};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Fsm::HOSTMANAGER->new  taskSem undefined"));
+   }
+
+   bless ($self, $class);
+   return $self;
+}
+
+
+my $workPkt; 
+my $goldPkt; 
+my $workOp;
+my $goldOp;
+my $raw;
+my $msg;
+my $ns;
+my $myMac; 
+my $myIface; 
+
+mmt_TableBegin 
+
+   $myMac = Tosf::Table::SVAR->get_value("my_mac"); 
+   $myIface = Tosf::Table::SVAR->get_value("my_iface"); 
+
+mmt_TableRow(
+   "SIN",
+
+   $raw = Tosf::Table::MESSAGE->dequeue($self->{taskName});
+   $workPkt->decode($raw);
+   $workOp = $workPkt->get_opcode();
+   
+   if ($workOp == 0) {
+      $ns = "OP0";
+   } elsif ($workOp == 1) {
+      $ns = "OP1";
+   } elsif ($workOp == 2) {
+      $ns = "OP2";
+   } elsif ($workOp == 3) {
+      $ns = "OP3";
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Fsm::HOSTMANAGER->new  invalid work opcode $workOp"));
+   },
+
+   $ns
+)
+
+mmt_TableRow(
+   "SOUT",
+
+   Tosf::Table::SEMAPHORE->wait(semaphore => $self->{taskSem}),
+
+   "SIN"
+)
+
+
+mmt_TableRow(
+   "OP0", 
+
+   $goldPkt->decode($workPkt->get_msg());
+   if ($goldPkt->get_destMac() eq $myMac) {
+      $goldOp = $goldPkt->get_opcode();
+      if ($goldOp == 3) {
+         Tosf::Table::SVAR->assign("sv_regAck", 1);
+      } elsif ($goldOp == 9) {
+         Tosf::Table::SVAR->assign("sv_go", 1);
+      } elsif ($goldOp == 1) {
+         # do nothing ping reply from server
+      }
+   },
+
+   "SOUT"
+)
+
+mmt_TableRow(
+   "OP1", 
+   
+   $goldPkt->set_srcMac($myMac);
+   $goldPkt->set_destMac(SERVERMAC);
+   $goldPkt->set_opcode(2); # reg request
+   $goldPkt->set_msg('REGISTRATION'); 
+   $workPkt->set_msg($goldPkt->encode());
+   $workPkt->set_iface($myIface);
+   $workPkt->set_opcode(1); # write request
+   Tosf::Table::MESSAGE->enqueue($self->{handlerName}, $workPkt->encode());
+   Tosf::Table::SEMAPHORE->signal(semaphore => $self->{handlerSem}),
+
+   "SOUT"
+)
+
+mmt_TableRow(
+   "OP3",
+
+   $goldPkt->set_srcMac($myMac);
+   $goldPkt->set_destMac(SERVERMAC);
+   $goldPkt->set_opcode(0); # ping request
+   $goldPkt->set_msg('PINGSERVER');
+   $workPkt->set_msg($goldPkt->encode());
+   $workPkt->set_iface($myIface);
+   $workPkt->set_opcode(1); # write request
+   Tosf::Table::MESSAGE->enqueue($self->{handlerName}, $workPkt->encode());
+   Tosf::Table::SEMAPHORE->signal(semaphore => $self->{handlerSem}),
+
+   "SOUT"
+)
+
+
+mmt_TableRow(
+   "OP2", 
+   
+   $goldPkt->set_srcMac($myMac);
+   $goldPkt->set_destMac(SERVERMAC);
+   $goldPkt->set_opcode(8); # send completed running time
+   $goldPkt->set_msg($workPkt->get_msg());
+   $workPkt->set_msg($goldPkt->encode());
+   $workPkt->set_iface($myIface);
+   $workPkt->set_opcode(1); # write request
+   Tosf::Table::MESSAGE->enqueue($self->{handlerName}, $workPkt->encode());
+   Tosf::Table::SEMAPHORE->signal(semaphore => $self->{handlerSem}),
+
+   "SOUT"
+)
+
+mmt_TableEnd 
+
+mmt_Reset(
+   "SIN",
+
+   $workPkt = Tosf::Packet::Work->new();
+   $goldPkt = goldApp::Packet::Gold->new();
+
+)
+
+1;

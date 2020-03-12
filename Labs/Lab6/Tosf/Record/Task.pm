@@ -30,7 +30,7 @@ sub  new {
       blockingSemRef => my $blockingSemRef = ' ',
       fsm => my $fsm,
       currentState => my $currentState = "dummy current state",
-      nextState => my $nextState = "dummp next state",
+      nextState => my $nextState = "dummy next state",
       wcet => my $wcet = 0,
       elapsedTime => my $elapsedTime = 0
    };
