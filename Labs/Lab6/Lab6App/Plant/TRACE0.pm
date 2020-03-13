@@ -1,4 +1,4 @@
-package traceApp::Plant::TRACE0;
+package Lab6App::Plant::TRACE0;
 #================================================================--
 # File Name    : TRACE0.pm
 #
@@ -31,7 +31,7 @@ sub start {
       name => $task, 
       periodic => TRUE, 
       period => 10,
-      fsm => traceApp::Fsm::FOO->new(
+      fsm => Lab6App::Fsm::FOO->new(
          taskName => $task,
          taskSem => $sem,
          steps => 10

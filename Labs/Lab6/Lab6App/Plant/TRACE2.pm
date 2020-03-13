@@ -1,8 +1,8 @@
-package traceApp::Plant::TRACE0;
+package Lab6App::Plant::TRACE2;
 #================================================================--
-# File Name    : TRACE0.pm
+# File Name    : TRACE2.pm
 #
-# Purpose      : Plant set-up for TRACE0
+# Purpose      : Plant set-up for TRACE2
 #
 # Author       : Peter Walsh, Vancouver Island University
 #
@@ -31,10 +31,10 @@ sub start {
       name => $task, 
       periodic => TRUE, 
       period => 10,
-      fsm => traceApp::Fsm::FOO->new(
+      fsm => Lab6App::Fsm::TOM->new(
          taskName => $task,
          taskSem => $sem,
-         steps => 10
+         steps => 6
       )
    );
 
@@ -42,6 +42,23 @@ sub start {
    Tosf::Table::SEMAPHORE->wait(semaphore => $sem, task => $task);
    Tosf::Table::TASK->reset($task);
 
+   #--------------------------------------------------
+   $task = "t5";
+   $sem  = "t5Sem";
+    
+   Tosf::Table::TASK->new(
+      name => $task, 
+      periodic => FALSE, 
+      fsm => Lab6App::Fsm::JERRY->new(
+         taskName => $task,
+         taskSem => $sem
+      )
+   );
+
+   Tosf::Table::SEMAPHORE->add(name => $sem, max => 2);
+   Tosf::Table::SEMAPHORE->wait(semaphore => $sem, task => $task);
+   Tosf::Table::TASK->reset($task);
+    
 }
 
 1;

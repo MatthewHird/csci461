@@ -25,33 +25,32 @@ $s = Tosf::Table::PQUEUE->get_siz('peter');
 print("Siz of peter is $s \n");
 
 do {
-    try {
-        my $pkt = "CCCCCC";
-        Tosf::Table::PQUEUE->enqueue('peter', $pkt, 23);
-        my $ret = Tosf::Table::PQUEUE->dequeue('peter');
-        print($ret, "\n");
+   try {
+      my $pkt = "CCCCCC";
+      Tosf::Table::PQUEUE->enqueue('peter', $pkt, 23);
+      my $ret=Tosf::Table::PQUEUE->dequeue('peter');
+      print ($ret, "\n");
 
-        $pkt = "DDDD";
-        Tosf::Table::PQUEUE->enqueue('peter', $pkt, 62);
-        $ret = Tosf::Table::PQUEUE->dequeue('peter');
-        print($ret, "\n");
+      $pkt = "DDDD";
+      Tosf::Table::PQUEUE->enqueue('peter', $pkt, 62);
+      $ret=Tosf::Table::PQUEUE->dequeue('peter');
+      print ($ret, "\n");
 
-        $pkt = "EEEE";
-        Tosf::Table::PQUEUE->enqueue('paul', $pkt, 3);
-        $ret = Tosf::Table::PQUEUE->dequeue('paul');
+      $pkt = "EEEE";
+      Tosf::Table::PQUEUE->enqueue('paul', $pkt, 3);
+      $ret=Tosf::Table::PQUEUE->dequeue('paul');
 
-        print($ret, "\n");
-    }
+      print ($ret, "\n");
+   }
 
-    catch {
-        my $cew_e = $_;
-        if (ref($cew_e) ~~ "Tosf::Exception::Trap") {
-            my $exc_name = $cew_e->get_name();
-            print("FATAL ERROR: $exc_name \n");
-        }
-        else {
-            die("ref($cew_e)");
-        }
-    }
-    }
+   catch {
+      my $cew_e = $_;
+      if (ref($cew_e) ~~ "Tosf::Exception::Trap") {
+         my $exc_name = $cew_e->get_name();
+         print("FATAL ERROR: $exc_name \n");
+      } else {
+         die("ref($cew_e)");
+      }
+   }
+}
 

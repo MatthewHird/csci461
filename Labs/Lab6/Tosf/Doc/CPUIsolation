@@ -21,4 +21,16 @@ To execute a progrem foo on cpu 0
 taskset 0x1 ./foo
 
 
+Configurating top
+================
+You can configure  top to display core information as follows:
+
+Execute top
+Type H for thread mode
+Type 1 for core usage
+Type f to enter the fields management window
+ select nTP and P for mumber of threads and
+ last used cpu respectively
+Type <esc> to exit field management
+Type W to save your configuration
 

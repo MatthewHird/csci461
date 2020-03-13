@@ -1,4 +1,4 @@
-package traceApp::Plant::MENU;
+package Lab6App::Plant::MENU;
 #================================================================--
 # File Name    : MENU.pm
 #
@@ -41,13 +41,13 @@ sub start {
    }
 
    if ($sel == 0) {
-      traceApp::Plant::TRACE0->start();
+      Lab6App::Plant::TRACE0->start();
    } elsif ($sel == 1) {
-      traceApp::Plant::TRACE1->start();
+      Lab6App::Plant::TRACE1->start();
    } elsif ($sel == 2) {
-      traceApp::Plant::TRACE2->start();
+      Lab6App::Plant::TRACE2->start();
    } elsif ($sel == 3) {
-      traceApp::Plant::TRACE3->start();
+      Lab6App::Plant::TRACE3->start();
    }
    
 }

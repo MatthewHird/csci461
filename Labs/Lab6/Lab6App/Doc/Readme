@@ -1,0 +1,71 @@
+TOSF Trace Examples
+===================
+
+This file contains an overview of the trace examples used for system
+verification.  Traces can be selected from the main
+menu. The scheduler and dispatcher have been instrumented to provide
+debugging information.
+
+To turn-on this instrumentation: 
+   - uncomment the print statements in Tosf::Executive/SCHEDULER.pm
+   - uncomment the print statements in Tosf::Executive/DISPATCHER.pm.
+
+All input is from stdin and output goes to stdout however you can redirect
+input/output to/from a file.  make save will read a menu selection from
+INFILE and save the trace in OUTFILE.
+
+Trace 0
+=======
+Modify the following constants in main.pl:
+   - TIMER_PERIOD => 1.0;
+   - NUM_SLOTS => 1;
+   - NUM_PERIODIC_PRIORITY_SLOTS => 1;
+
+An execution trace can be found in trace.0.  The goal is to check for off-by-one
+faults when the task requires all its period to meet its timing goal.
+
+
+Trace 1
+=======
+   - TIMER_PERIOD => 1.0;
+   - NUM_SLOTS => 4;
+   - NUM_PERIODIC_PRIORITY_SLOTS => 3;
+
+An execution trace can be found in trace.1 using EDF scheduling.  The goal
+is to check the interaction between two periodic task and an aperiodic
+task. Note how the aperiodic task uses a suspended time-out.
+
+Trace 2
+=======
+   - TIMER_PERIOD => 1.0;
+   - NUM_SLOTS => 4;
+   - NUM_PERIODIC_PRIORITY_SLOTS => 3;
+
+An execution trace can be found in trace.2 using EDF scheduling.
+The maximum value of semaphore t5Sem is set to 2. The goal is to test
+a signaling sequence that attempts to increment the semaphore's value
+beyond 2. The correct behaviour is to throw an exception.  A is to
+check than
+
+Trace 3
+=======
+
+   - TIMER_PERIOD => 1.0;
+   - NUM_SLOTS => 4;
+   - NUM_PERIODIC_PRIORITY_SLOTS => 3;
+
+An execution trace can be found in trace.3 using EDF scheduling.
+Three aperiodic tasks are referenced viz., p1, p2 and c1. They implement
+the producer/consumer problem with 2 producers and 1 consumer. Three
+mutual exclusion semaphores are employed:
+
+   Tosf::Table::SEMAPHORE->add(name => "mutex", value => 1, max => 1);
+   # for mutual exclusion
+   Tosf::Table::SEMAPHORE->add(name => "empty", value => 5, max => 5);
+   # number of empty "buffer" spaces
+   Tosf::Table::SEMAPHORE->add(name => "full", value => 0, max => 5);
+   # number of full "buffer" spaces
+
+Production is twice the rate of consumption until the "buffer" becomes
+full.  Then production and consumption occur at the same rate.
+

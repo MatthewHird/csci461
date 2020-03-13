@@ -1,6 +1,6 @@
 package Tosf::Executive::DISPATCHER;
 
-#========================================================================
+#================================================================--
 # File Name    : DISPATCHER.pm
 #
 # Purpose      : execute scheduled tasks
@@ -9,10 +9,7 @@ package Tosf::Executive::DISPATCHER;
 #
 # System       : Perl (Linux)
 #
-# Revisions     :
-#     Matthew Hird    Mar 2020    Increment task elapsedTime by 1 on tick
-#
-#========================================================================
+#=========================================================
 
 $| = 1;
 use strict;
@@ -42,7 +39,8 @@ sub set_numPeriodicPrioritySlots {
     $num_pps = shift @_;
     if ($num_pps > $num_slots) {
         die(Tosf::Exception::Trap->new(
-                name => "Executive::DISPATCHER->tick num periodic priority slots  > number of slots "
+                name =>
+                    "Executive::DISPATCHER->tick num periodic priority slots  > number of slots "
             )
         );
     }
@@ -69,7 +67,9 @@ sub calcLoopLimits {
         $num_aperiodic = $asiz;
     }
 
-    while ((($num_periodic + $num_aperiodic) < $ns) && (($num_periodic + $num_aperiodic) < ($asiz + $psiz))) {
+    while ((($num_periodic + $num_aperiodic) < $ns)
+        && (($num_periodic + $num_aperiodic) < ($asiz + $psiz)))
+    {
         if ($num_periodic < $psiz) {
             $num_periodic++;
         } elsif ($num_aperiodic < $asiz) {
@@ -87,22 +87,22 @@ sub tick {
     $aqsiz = Tosf::Table::QUEUE->get_siz('apTask');
     $pqsiz = Tosf::Table::PQUEUE->get_siz('pTask');
 
-    ($periodic_siz, $aperiodic_siz) = calcLoopLimits($num_slots, $num_pps, $pqsiz, $aqsiz);
+    ($periodic_siz, $aperiodic_siz)
+        = calcLoopLimits($num_slots, $num_pps, $pqsiz, $aqsiz);
 
     $slot_count = 0;
 
-    # uncomment the following to run the trace examples
-    #print("DISPATCHER: number of periodic  tasks to be executed in this frame $periodic_siz \n");
-    #print("DISPATCHER: number of aperiodic  tasks to be executed in this frame $aperiodic_siz \n");
+# uncomment the following to run the trace examples
+#print("DISPATCHER: number of periodic  tasks to be executed in this frame $periodic_siz \n");
+#print("DISPATCHER: number of aperiodic  tasks to be executed in this frame $aperiodic_siz \n");
 
     while ($slot_count < $periodic_siz) {
         $slot_count = $slot_count + 1;
         $key        = Tosf::Table::PQUEUE->dequeue('pTask');
         Tosf::Collection::STATUS->set_currentExecutingTask($key);
         $fsm = Tosf::Table::TASK->get_fsm($key);
-        Tosf::Table::TASK->set_nextState($key, $fsm->tick(Tosf::Table::TASK->get_nextState($key)));
-
-        Tosf::Table::TASK->increment_elapsedTime($key);
+        Tosf::Table::TASK->set_nextState($key,
+            $fsm->tick(Tosf::Table::TASK->get_nextState($key)));
     }
 
     # dequeue remaining periodic tasks and throw away
@@ -117,7 +117,8 @@ sub tick {
         $key        = Tosf::Table::QUEUE->dequeue('apTask');
         Tosf::Collection::STATUS->set_currentExecutingTask($key);
         $fsm = Tosf::Table::TASK->get_fsm($key);
-        Tosf::Table::TASK->set_nextState($key, $fsm->tick(Tosf::Table::TASK->get_nextState($key)));
+        Tosf::Table::TASK->set_nextState($key,
+            $fsm->tick(Tosf::Table::TASK->get_nextState($key)));
     }
 
     # aperiodic tasks are executed round-robin

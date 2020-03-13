@@ -1,18 +1,15 @@
 package Tosf::Executive::SCHEDULER;
 
-#===================================================================
+#================================================================--
 # File Name    : SCHEDULER.pm
 #
-# Purpose      : LLF schedular
+# Purpose      : EDF schedular
 #
 # Author       : Peter Walsh, Vancouver Island University
 #
 # System       : Perl (Linux)
 #
-# Revisions     :
-#     Matthew Hird    Mar 2020    Change scheduler from EDF to LLF
-#
-#===================================================================
+#=========================================================
 
 $| = 1;
 use strict;
@@ -24,56 +21,51 @@ use Time::HiRes qw (ualarm usleep gettimeofday tv_interval);
 my $tme;    # for WCET calculation
 my @tod;
 
-my $taskName;
+my $k;
 my $periodic;
 my $inq;
 my $blocked;
 my $rtime;
 my $bs;
-my @taskNames;
-my $wcet;
-my $elapsedTime;
+my @keys;
 
 sub tick {
 
     @tod = gettimeofday();
 
-    @taskNames = Tosf::Table::TASK->get_keys();
+    @keys = Tosf::Table::TASK->get_keys();
 
     Tosf::Table::SVAR->update_all();
 
-    foreach $taskName (@taskNames) {
+    foreach $k (@keys) {
 
-        $blocked  = Tosf::Table::TASK->get_blocked($taskName);
-        $rtime    = Tosf::Table::TASK->get_resumeTime($taskName);
-        $periodic = Tosf::Table::TASK->get_periodic($taskName);
-        $wcet = Tosf::Table::TASK->get_wcet($taskName);
-        $elapsedTime = Tosf::Table::TASK->get_elapsedTime($taskName);
+        $blocked  = Tosf::Table::TASK->get_blocked($k);
+        $rtime    = Tosf::Table::TASK->get_resumeTime($k);
+        $periodic = Tosf::Table::TASK->get_periodic($k);
 
         if ($rtime == 0) {
 
             if ($blocked) {
 
                 if ($periodic) {
-                    $rtime = Tosf::Table::TASK->get_period($taskName);
+                    $rtime = Tosf::Table::TASK->get_period($k);
                 } else {
                     $rtime = -1;
                 }
 
-                Tosf::Table::TASK->set_resumeTime($taskName, $rtime);
-                Tosf::Table::TASK->reset_elapsedTime($taskName);
-                $elapsedTime = Tosf::Table::TASK->get_elapsedTime($taskName);
+                Tosf::Table::TASK->set_resumeTime($k, $rtime);
 
-                $bs = Tosf::Table::TASK->get_blockingSemRef($taskName);
-                $bs->resume($taskName);
-                $blocked = Tosf::Table::TASK->get_blocked($taskName);
+                $bs = Tosf::Table::TASK->get_blockingSemRef($k);
+                $bs->resume($k);
+                $blocked = Tosf::Table::TASK->get_blocked($k);
 
                 # uncomment the following to run the trace examples
-                print("SCHEDULER: resume task $taskName  \n");
+                #print("SCHEDULER: resume task $k  \n");
 
             } else {
                 die(Tosf::Exception::Trap->new(
-                        name => "Executive::SCHEDULER->tick attempted to resume non-blocked task $taskName"
+                        name =>
+                            "Executive::SCHEDULER->tick attempted to resume non-blocked task $k"
                     )
                 );
             }
@@ -82,28 +74,17 @@ sub tick {
         if (!$blocked) {
 
             if ($periodic) {
-                # Laxity = deadline - (current_instant_of_time + Remaining_WCET) 
-                # Laxity = deadline - current_instant_of_time - Remaining_WCET 
-                # rtime = deadline - current_instant_of_time
-                # Laxity = rtime - Remaining_WCET
-                # Remaining_WCET = wcet - elapsedTime 
-                # Laxity = rtime - (wcet - elapsedTime)
-                # Laxity = rtime - wcet + elapsedTime
-                # Laxity = rtime + elapsedTime - wcet 
-                my $laxity = $rtime + $elapsedTime - $wcet;
-                Tosf::Table::PQUEUE->enqueue('pTask', $taskName, $laxity);
+                Tosf::Table::PQUEUE->enqueue('pTask', $k, $rtime);
 
-                # uncomment the following to run the trace examples
-                print("SCHEDULER: Task Name => $taskName; Laxity => $laxity\n");
-                # print("SCHEDULER: ready periodic task $taskName with priority $laxity \n");
-                
+          # uncomment the following to run the trace examples
+          #print("SCHEDULER: ready periodic task $k with priority $rtime \n");
             } else {
-                $inq = Tosf::Table::QUEUE->is_member('apTask', $taskName);
+                $inq = Tosf::Table::QUEUE->is_member('apTask', $k);
 
                 # uncomment the following to run the trace examples
-                #print("SCHEDULER: ready aperiodic task $taskName \n");
+                #print("SCHEDULER: ready aperiodic task $k \n");
                 if (!$inq) {
-                    Tosf::Table::QUEUE->enqueue('apTask', $taskName);
+                    Tosf::Table::QUEUE->enqueue('apTask', $k);
                 }
 
                 # Note, this task is enqueued on a non priority queue
@@ -111,7 +92,8 @@ sub tick {
         }
 
         if ($rtime >= 1) {
-            Tosf::Table::TASK->decrement_resumeTime($taskName);
+            Tosf::Table::TASK->decrement_resumeTime($k);
+            Tosf::Table::TASK->decrement_tempPriority($k);
         }
     }
 
