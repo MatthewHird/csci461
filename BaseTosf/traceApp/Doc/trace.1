@@ -1,0 +1,361 @@
+[3J[H[2J
+Boot Menu
+
+	Trace  0
+	Trace  1
+	Trace  2
+
+Enter selection (CTRL C to exit) 
+BAR: signal semaphore t5Sem
+usec 1000000 
+------------------ Tick 0 -----------
+SCHEDULER: resume task t3  
+SCHEDULER: ready periodic task t3 with priority 10 
+SCHEDULER: ready aperiodic task t5 
+SCHEDULER: resume task t4  
+SCHEDULER: ready periodic task t4 with priority 10 
+DISPATCHER: number of periodic  tasks to be executed in this frame 2 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 1 
+FOO: task t3 executing step 0
+FOO: task t4 executing step 0
+BAR: task t5 executing step 0
+------------------ Tick 1 -----------
+SCHEDULER: ready periodic task t3 with priority 9 
+SCHEDULER: ready aperiodic task t5 
+SCHEDULER: ready periodic task t4 with priority 9 
+DISPATCHER: number of periodic  tasks to be executed in this frame 2 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 1 
+FOO: task t3 executing step 1
+FOO: task t4 executing step 1
+BAR: task t5 executing step 1
+------------------ Tick 2 -----------
+SCHEDULER: ready periodic task t3 with priority 8 
+SCHEDULER: ready aperiodic task t5 
+SCHEDULER: ready periodic task t4 with priority 8 
+DISPATCHER: number of periodic  tasks to be executed in this frame 2 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 1 
+FOO: task t3 executing step 2
+FOO: task t4 executing step 2
+BAR: task t5 executing step 2
+------------------ Tick 3 -----------
+SCHEDULER: ready periodic task t3 with priority 7 
+SCHEDULER: ready aperiodic task t5 
+SCHEDULER: ready periodic task t4 with priority 7 
+DISPATCHER: number of periodic  tasks to be executed in this frame 2 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 1 
+FOO: task t3 executing step 3
+FOO: task t4 executing step 3
+FOO: wait on semaphore t4Sem
+BAR: task t5 executing step 3
+------------------ Tick 4 -----------
+SCHEDULER: ready periodic task t3 with priority 6 
+SCHEDULER: ready aperiodic task t5 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 1 
+FOO: task t3 executing step 4
+BAR: task t5 executing step 4
+------------------ Tick 5 -----------
+SCHEDULER: ready periodic task t3 with priority 5 
+SCHEDULER: ready aperiodic task t5 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 1 
+FOO: task t3 executing step 5
+BAR: task t5 executing step 5
+------------------ Tick 6 -----------
+SCHEDULER: ready periodic task t3 with priority 4 
+SCHEDULER: ready aperiodic task t5 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 1 
+FOO: task t3 executing step 6
+BAR: task t5 executing step 6
+BAR: wait on semaphore t5Sem
+------------------ Tick 7 -----------
+SCHEDULER: ready periodic task t3 with priority 3 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 0 
+FOO: task t3 executing step 7
+------------------ Tick 8 -----------
+SCHEDULER: ready periodic task t3 with priority 2 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 0 
+FOO: task t3 executing step 8
+------------------ Tick 9 -----------
+SCHEDULER: ready periodic task t3 with priority 1 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 0 
+FOO: task t3 executing step 9
+FOO: wait on semaphore t3Sem
+------------------ Tick 10 -----------
+SCHEDULER: resume task t3  
+SCHEDULER: ready periodic task t3 with priority 10 
+SCHEDULER: resume task t4  
+SCHEDULER: ready periodic task t4 with priority 10 
+DISPATCHER: number of periodic  tasks to be executed in this frame 2 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 0 
+FOO: task t3 executing step 0
+FOO: task t4 executing step 0
+------------------ Tick 11 -----------
+SCHEDULER: ready periodic task t3 with priority 9 
+SCHEDULER: ready periodic task t4 with priority 9 
+DISPATCHER: number of periodic  tasks to be executed in this frame 2 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 0 
+FOO: task t3 executing step 1
+FOO: task t4 executing step 1
+------------------ Tick 12 -----------
+SCHEDULER: ready periodic task t3 with priority 8 
+SCHEDULER: resume task t5  
+SCHEDULER: ready aperiodic task t5 
+SCHEDULER: ready periodic task t4 with priority 8 
+DISPATCHER: number of periodic  tasks to be executed in this frame 2 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 1 
+FOO: task t3 executing step 2
+FOO: task t4 executing step 2
+BAR: task t5 executing step 0
+------------------ Tick 13 -----------
+SCHEDULER: ready periodic task t3 with priority 7 
+SCHEDULER: ready aperiodic task t5 
+SCHEDULER: ready periodic task t4 with priority 7 
+DISPATCHER: number of periodic  tasks to be executed in this frame 2 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 1 
+FOO: task t3 executing step 3
+FOO: task t4 executing step 3
+FOO: wait on semaphore t4Sem
+BAR: task t5 executing step 1
+------------------ Tick 14 -----------
+SCHEDULER: ready periodic task t3 with priority 6 
+SCHEDULER: ready aperiodic task t5 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 1 
+FOO: task t3 executing step 4
+BAR: task t5 executing step 2
+------------------ Tick 15 -----------
+SCHEDULER: ready periodic task t3 with priority 5 
+SCHEDULER: ready aperiodic task t5 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 1 
+FOO: task t3 executing step 5
+BAR: task t5 executing step 3
+------------------ Tick 16 -----------
+SCHEDULER: ready periodic task t3 with priority 4 
+SCHEDULER: ready aperiodic task t5 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 1 
+FOO: task t3 executing step 6
+BAR: task t5 executing step 4
+------------------ Tick 17 -----------
+SCHEDULER: ready periodic task t3 with priority 3 
+SCHEDULER: ready aperiodic task t5 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 1 
+FOO: task t3 executing step 7
+BAR: task t5 executing step 5
+------------------ Tick 18 -----------
+SCHEDULER: ready periodic task t3 with priority 2 
+SCHEDULER: ready aperiodic task t5 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 1 
+FOO: task t3 executing step 8
+BAR: task t5 executing step 6
+BAR: wait on semaphore t5Sem
+------------------ Tick 19 -----------
+SCHEDULER: ready periodic task t3 with priority 1 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 0 
+FOO: task t3 executing step 9
+FOO: wait on semaphore t3Sem
+------------------ Tick 20 -----------
+SCHEDULER: resume task t3  
+SCHEDULER: ready periodic task t3 with priority 10 
+SCHEDULER: resume task t4  
+SCHEDULER: ready periodic task t4 with priority 10 
+DISPATCHER: number of periodic  tasks to be executed in this frame 2 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 0 
+FOO: task t3 executing step 0
+FOO: task t4 executing step 0
+------------------ Tick 21 -----------
+SCHEDULER: ready periodic task t3 with priority 9 
+SCHEDULER: ready periodic task t4 with priority 9 
+DISPATCHER: number of periodic  tasks to be executed in this frame 2 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 0 
+FOO: task t3 executing step 1
+FOO: task t4 executing step 1
+------------------ Tick 22 -----------
+SCHEDULER: ready periodic task t3 with priority 8 
+SCHEDULER: ready periodic task t4 with priority 8 
+DISPATCHER: number of periodic  tasks to be executed in this frame 2 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 0 
+FOO: task t3 executing step 2
+FOO: task t4 executing step 2
+------------------ Tick 23 -----------
+SCHEDULER: ready periodic task t3 with priority 7 
+SCHEDULER: ready periodic task t4 with priority 7 
+DISPATCHER: number of periodic  tasks to be executed in this frame 2 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 0 
+FOO: task t3 executing step 3
+FOO: task t4 executing step 3
+FOO: wait on semaphore t4Sem
+------------------ Tick 24 -----------
+SCHEDULER: ready periodic task t3 with priority 6 
+SCHEDULER: resume task t5  
+SCHEDULER: ready aperiodic task t5 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 1 
+FOO: task t3 executing step 4
+BAR: task t5 executing step 0
+------------------ Tick 25 -----------
+SCHEDULER: ready periodic task t3 with priority 5 
+SCHEDULER: ready aperiodic task t5 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 1 
+FOO: task t3 executing step 5
+BAR: task t5 executing step 1
+------------------ Tick 26 -----------
+SCHEDULER: ready periodic task t3 with priority 4 
+SCHEDULER: ready aperiodic task t5 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 1 
+FOO: task t3 executing step 6
+BAR: task t5 executing step 2
+------------------ Tick 27 -----------
+SCHEDULER: ready periodic task t3 with priority 3 
+SCHEDULER: ready aperiodic task t5 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 1 
+FOO: task t3 executing step 7
+BAR: task t5 executing step 3
+------------------ Tick 28 -----------
+SCHEDULER: ready periodic task t3 with priority 2 
+SCHEDULER: ready aperiodic task t5 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 1 
+FOO: task t3 executing step 8
+BAR: task t5 executing step 4
+------------------ Tick 29 -----------
+SCHEDULER: ready periodic task t3 with priority 1 
+SCHEDULER: ready aperiodic task t5 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 1 
+FOO: task t3 executing step 9
+FOO: wait on semaphore t3Sem
+BAR: task t5 executing step 5
+------------------ Tick 30 -----------
+SCHEDULER: resume task t3  
+SCHEDULER: ready periodic task t3 with priority 10 
+SCHEDULER: ready aperiodic task t5 
+SCHEDULER: resume task t4  
+SCHEDULER: ready periodic task t4 with priority 10 
+DISPATCHER: number of periodic  tasks to be executed in this frame 2 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 1 
+FOO: task t3 executing step 0
+FOO: task t4 executing step 0
+BAR: task t5 executing step 6
+BAR: wait on semaphore t5Sem
+------------------ Tick 31 -----------
+SCHEDULER: ready periodic task t3 with priority 9 
+SCHEDULER: ready periodic task t4 with priority 9 
+DISPATCHER: number of periodic  tasks to be executed in this frame 2 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 0 
+FOO: task t3 executing step 1
+FOO: task t4 executing step 1
+------------------ Tick 32 -----------
+SCHEDULER: ready periodic task t3 with priority 8 
+SCHEDULER: ready periodic task t4 with priority 8 
+DISPATCHER: number of periodic  tasks to be executed in this frame 2 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 0 
+FOO: task t3 executing step 2
+FOO: task t4 executing step 2
+------------------ Tick 33 -----------
+SCHEDULER: ready periodic task t3 with priority 7 
+SCHEDULER: ready periodic task t4 with priority 7 
+DISPATCHER: number of periodic  tasks to be executed in this frame 2 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 0 
+FOO: task t3 executing step 3
+FOO: task t4 executing step 3
+FOO: wait on semaphore t4Sem
+------------------ Tick 34 -----------
+SCHEDULER: ready periodic task t3 with priority 6 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 0 
+FOO: task t3 executing step 4
+------------------ Tick 35 -----------
+SCHEDULER: ready periodic task t3 with priority 5 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 0 
+FOO: task t3 executing step 5
+------------------ Tick 36 -----------
+SCHEDULER: ready periodic task t3 with priority 4 
+SCHEDULER: resume task t5  
+SCHEDULER: ready aperiodic task t5 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 1 
+FOO: task t3 executing step 6
+BAR: task t5 executing step 0
+------------------ Tick 37 -----------
+SCHEDULER: ready periodic task t3 with priority 3 
+SCHEDULER: ready aperiodic task t5 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 1 
+FOO: task t3 executing step 7
+BAR: task t5 executing step 1
+------------------ Tick 38 -----------
+SCHEDULER: ready periodic task t3 with priority 2 
+SCHEDULER: ready aperiodic task t5 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 1 
+FOO: task t3 executing step 8
+BAR: task t5 executing step 2
+------------------ Tick 39 -----------
+SCHEDULER: ready periodic task t3 with priority 1 
+SCHEDULER: ready aperiodic task t5 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 1 
+FOO: task t3 executing step 9
+FOO: wait on semaphore t3Sem
+BAR: task t5 executing step 3
+------------------ Tick 40 -----------
+SCHEDULER: resume task t3  
+SCHEDULER: ready periodic task t3 with priority 10 
+SCHEDULER: ready aperiodic task t5 
+SCHEDULER: resume task t4  
+SCHEDULER: ready periodic task t4 with priority 10 
+DISPATCHER: number of periodic  tasks to be executed in this frame 2 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 1 
+FOO: task t3 executing step 0
+FOO: task t4 executing step 0
+BAR: task t5 executing step 4
+------------------ Tick 41 -----------
+SCHEDULER: ready periodic task t3 with priority 9 
+SCHEDULER: ready aperiodic task t5 
+SCHEDULER: ready periodic task t4 with priority 9 
+DISPATCHER: number of periodic  tasks to be executed in this frame 2 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 1 
+FOO: task t3 executing step 1
+FOO: task t4 executing step 1
+BAR: task t5 executing step 5
+------------------ Tick 42 -----------
+SCHEDULER: ready periodic task t3 with priority 8 
+SCHEDULER: ready aperiodic task t5 
+SCHEDULER: ready periodic task t4 with priority 8 
+DISPATCHER: number of periodic  tasks to be executed in this frame 2 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 1 
+FOO: task t3 executing step 2
+FOO: task t4 executing step 2
+BAR: task t5 executing step 6
+BAR: wait on semaphore t5Sem
+------------------ Tick 43 -----------
+SCHEDULER: ready periodic task t3 with priority 7 
+SCHEDULER: ready periodic task t4 with priority 7 
+DISPATCHER: number of periodic  tasks to be executed in this frame 2 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 0 
+FOO: task t3 executing step 3
+FOO: task t4 executing step 3
+FOO: wait on semaphore t4Sem
+------------------ Tick 44 -----------
+SCHEDULER: ready periodic task t3 with priority 6 
+DISPATCHER: number of periodic  tasks to be executed in this frame 1 
+DISPATCHER: number of aperiodic  tasks to be executed in this frame 0 
+FOO: task t3 executing step 4
+Scheduler WCET = 0.000985 (sec) 
+Dispatcher WCET (including task execution) = 0.000423 (sec) 
+
+Shutdown Now !!!!! 

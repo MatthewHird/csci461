@@ -4,7 +4,7 @@
 #
 # File Name    : main.pl
 #
-# Purpose      : main routine for Lab6App
+# Purpose      : main routine for traceApp
 #
 # Author       : Peter Walsh, Vancouver Island University
 #
@@ -47,7 +47,7 @@ use lib '../';
 #if (mlockall(MCL_CURRENT | MCL_FUTURE) != 0) { die "Failed to lock RAM: $!"; }
 
 use AnyEvent;
-# use Gtk2 -init;
+use Gtk2 -init;
 use Try::Tiny;
 use Time::HiRes qw (ualarm usleep);
 use Gnome2::Canvas;
@@ -72,18 +72,25 @@ use Tosf::Executive::TIMER;
 use Tosf::Executive::SCHEDULER;
 use Tosf::Executive::DISPATCHER;
 
-use Lab6App::Fsm::DELAY_CRIT;
-use Lab6App::Fsm::FOO;
-
-use Lab6App::Plant::LAB6_APP;
+use traceApp::Fsm::FOO;
+use traceApp::Fsm::BAR;
+use traceApp::Fsm::TOM;
+use traceApp::Fsm::JERRY;
+use traceApp::Fsm::PRODUCER;
+use traceApp::Fsm::CONSUMER;
+use traceApp::Plant::MENU;
+use traceApp::Plant::TRACE0;
+use traceApp::Plant::TRACE1;
+use traceApp::Plant::TRACE2;
+use traceApp::Plant::TRACE3;
 
 use constant TRUE => 1;
 use constant FALSE => 0;
 #timer period in seconds
-use constant TIMER_PERIOD => 0.25;
+use constant TIMER_PERIOD => 1.0;
 # sleep time in micro seconds
-use constant NUM_SLOTS => 1;
-use constant NUM_PERIODIC_PRIORITY_SLOTS => 1;
+use constant NUM_SLOTS => 4;
+use constant NUM_PERIODIC_PRIORITY_SLOTS => 3;
 
 sub leaveScript {
 
@@ -104,7 +111,7 @@ my $tl = Tosf::Exception::Monitor->new(
       Tosf::Executive::DISPATCHER->set_numPeriodicPrioritySlots(NUM_PERIODIC_PRIORITY_SLOTS);
       Tosf::Executive::TIMER->set_period(TIMER_PERIOD);
 
-      Lab6App::Plant::LAB6_APP->start();
+      traceApp::Plant::MENU->start();
 
       Tosf::Executive::TIMER->start();
 

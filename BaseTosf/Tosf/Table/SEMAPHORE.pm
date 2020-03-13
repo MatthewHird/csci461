@@ -125,15 +125,11 @@ sub signal {
    }
 
    if (!exists($table{$params{semaphore}})) {
-      die(Tosf::Exception::Trap->new(name => "Table::SEMAPHORE->signal $params{semaphore} not in table"));
-   }
-
-   if (!defined($params{task})) {
-      die(Tosf::Exception::Trap->new(name => "Table::SEMAPHORE->signal task undefined"));
+      die(Tosf::Exception::Trap->new(name => "Table::SEMAPHORE->signal $params{semaphore}  not in table"));
    }
 
    #print("Signal ", $params{semaphore}, "\n");
-   $table{$params{semaphore}}->signal($params{task});
+   $table{$params{semaphore}}->signal();
 }
 
 #sub resume {

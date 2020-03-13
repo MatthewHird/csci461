@@ -26,6 +26,7 @@ my $periodic;
 my $inq;
 my $blocked;
 my $rtime;
+my $tempPriority;
 my $bs;
 my @keys;
 
@@ -41,6 +42,7 @@ sub tick {
 
         $blocked  = Tosf::Table::TASK->get_blocked($k);
         $rtime    = Tosf::Table::TASK->get_resumeTime($k);
+        $tempPriority = Tosf::Table::TASK->get_tempPriority($k);
         $periodic = Tosf::Table::TASK->get_periodic($k);
 
         if ($rtime == 0) {
@@ -54,6 +56,8 @@ sub tick {
                 }
 
                 Tosf::Table::TASK->set_resumeTime($k, $rtime);
+                Tosf::Table::TASK->reset_tempPriority($k);
+                $tempPriority = Tosf::Table::TASK->get_tempPriority($k);
 
                 $bs = Tosf::Table::TASK->get_blockingSemRef($k);
                 $bs->resume($k);
@@ -74,7 +78,7 @@ sub tick {
         if (!$blocked) {
 
             if ($periodic) {
-                Tosf::Table::PQUEUE->enqueue('pTask', $k, $rtime);
+                Tosf::Table::PQUEUE->enqueue('pTask', $k, $tempPriority);
 
           # uncomment the following to run the trace examples
           #print("SCHEDULER: ready periodic task $k with priority $rtime \n");

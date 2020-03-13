@@ -1,0 +1,91 @@
+package Lab6App::Fsm::CONSUMER;
+#================================================================--
+# File Name    : CONSUMER.pm
+#
+# Purpose      : implements task CONSUMER (to demonstrate
+#                producer/consumer problem).
+#
+# Author       : Peter Walsh, Vancouver Island University
+#
+# System       : Perl (Linux)
+#
+#=========================================================
+
+$| = 1;
+use strict;
+use warnings;
+
+include(mmt.pl)
+
+sub  new {
+   my $class = shift @_;
+   my %params = @_;
+
+   my $self = {
+      taskName => my $taskName,
+      taskSem => my $taskSem
+   };
+
+   if (defined($params{taskName})) {
+      $self->{taskName} = $params{taskName};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Task::CONSUMER taskName undefined"));
+   }
+
+   if (defined($params{taskSem})) {
+      $self->{taskSem} = $params{taskSem};
+   } else {
+      die(Tosf::Exception::Trap->new(name => "Task::CONSUMER taskSem undefined"));
+   }
+
+   bless ($self, $class);
+   return $self;
+}
+
+mmt_TableBegin 
+
+mmt_TableRow(
+   "S0",
+
+   print("CONSUMER task ", $self->{taskName} , " executing \n");
+   print("CONSUMER task ", $self->{taskName} , " wait on full \n");
+   Tosf::Table::SEMAPHORE->wait(semaphore => "full"),
+
+  "S1"
+)
+
+mmt_TableRow(
+   "S1",
+
+   print("CONSUMER task ", $self->{taskName} , " executing \n");
+   print("CONSUMER task ", $self->{taskName} , " wait on mutex \n");
+   Tosf::Table::SEMAPHORE->wait(semaphore => "mutex"),
+
+  "S2"
+)
+
+mmt_TableRow(
+   "S2",
+
+   print("CONSUMER task ", $self->{taskName} , " executing CONSUME\n");
+
+   print("CONSUMER: signal semaphore  mutex \n");
+   Tosf::Table::SEMAPHORE->signal(semaphore => "mutex");
+
+   print("CONSUMER: signal semaphore  empty \n");
+   Tosf::Table::SEMAPHORE->signal(semaphore => "empty"),
+
+  "S0"
+)
+   
+mmt_TableEnd 
+
+mmt_Reset(
+   "S0",
+
+   print("CONSUMER: signal semaphore ", $self->{taskSem}, " \n");
+   Tosf::Table::SEMAPHORE->signal(semaphore => $self->{taskSem});
+)
+
+
+1;
