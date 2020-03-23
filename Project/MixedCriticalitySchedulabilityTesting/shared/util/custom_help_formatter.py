@@ -1,0 +1,13 @@
+from argparse import HelpFormatter
+
+
+class CustomHelpFormatter(HelpFormatter):
+    def __init__(self, prog):
+        super().__init__(prog, max_help_position=60, width=116)
+
+    def _format_action_invocation(self, action):
+        if not action.option_strings or action.nargs == 0:
+            return super()._format_action_invocation(action)
+        default = self._get_default_metavar_for_optional(action)
+        args_string = self._format_args(action, default)
+        return ', '.join(action.option_strings) + ' ' + args_string
