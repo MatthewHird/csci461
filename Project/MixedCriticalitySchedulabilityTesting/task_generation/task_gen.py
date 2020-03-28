@@ -1,14 +1,15 @@
 import os
 import random
+import logging
 from datetime import datetime
 from typing import List
-import logging
 
-import task_generation.util.task_set_utilization_gen as ts_util_gen
-from task_generation.model.settings import Settings
 from shared.model.task import Task
 from shared.model.data_set import DataSet
 from shared.util.data_set_importer_exporter import DataSetImporterExporter
+
+import task_generation.util.task_set_utilization_gen as ts_util_gen
+from task_generation.model.settings import Settings
 from task_generation.util.multi_core_ce_scheduler import MultiCoreCeScheduler
 
 
@@ -20,8 +21,9 @@ class TaskGen:
         ds_collection_count = len(settings.task_generation.data_set_collections)
         if ds_collection_count == 0:
             return
-
-        root_out_dir = settings.output.output_directory + datetime.now().strftime("%Y-%m-%d_%H%M%S") + "/"
+        root_out_dir = f"{settings.output.output_directory}" \
+                       f"{settings.output.generated_directory_prefix}" \
+                       f"{datetime.now().strftime('%Y-%m-%d_%H%M%S')}/"
         os.mkdir(root_out_dir)
 
         logging.info(f"Creating output directory at {root_out_dir}")
@@ -131,14 +133,26 @@ class TaskGen:
             random.shuffle(crit_levels)
 
             for i, util in enumerate(ts_util):
+                criticality_level = crit_levels.pop()
                 period = random.choice(list(data_set_collection.period_set))
                 dpr = data_set_collection.deadline_to_period_range
                 deadline = round(period * TaskGen._random_range_float(dpr.low, dpr.high, dpr.increment))
+
+                # NEW_WAY
+                # wcet_own_criticality = round(util * period)
+                # wcet_own = data_set_collection.wcet_at_own_crit_to_base_crit_range
+                # wcet_base_criticality = wcet_own_criticality \
+                #     if criticality_level == num_crit_levels - 1 \
+                #     else round(util * period / TaskGen._random_range_float(
+                #         wcet_own.low, wcet_own.high, wcet_own.increment))
+
+                # OLD_WAY
                 wcet_base_criticality = round(util * period)
                 wcet_own = data_set_collection.wcet_at_own_crit_to_base_crit_range
-                wcet_own_criticality = round(util * period * TaskGen._random_range_float(
-                    wcet_own.low, wcet_own.high, wcet_own.increment))
-                criticality_level = crit_levels.pop()
+                wcet_own_criticality = wcet_base_criticality \
+                    if criticality_level == num_crit_levels - 1 \
+                    else round(util * period * TaskGen._random_range_float(
+                        wcet_own.low, wcet_own.high, wcet_own.increment))
 
                 task_set.append(
                     Task(
@@ -184,9 +198,9 @@ class TaskGen:
 
 
 if __name__ == '__main__':
-    from task_generation.util.settings_importer_exporter import SettingsImporterExporter
+    from task_generation.util.settings_importer import SettingsImporter
     logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level='INFO')
-    TaskGen.run(SettingsImporterExporter.import_settings_file(
+    TaskGen.run(SettingsImporter.import_settings_file(
         "/home/hirdm/Documents/csci461/Project/MixedCriticalitySchedulabilityTesting/"
         "resources/input/task_gen_test5.json"
     ))

@@ -12,6 +12,7 @@ class Settings:
             self.print_data_sets: bool = False
             self.pretty_print: bool = False
             self.output_directory: str = None
+            self.generated_directory_prefix: str = ""
 
     class TaskSetValidation:
         def __init__(self):

@@ -14,6 +14,3 @@ class DataSet:
     number_of_criticality_levels: int = attr.ib()
     period_set: Set[int] = attr.ib(factory=set)
     task_sets: List[List[Task]] = attr.ib(factory=list)
-
-    def task_set_count(self) -> int:
-        return len(self.task_sets)

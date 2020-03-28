@@ -21,7 +21,7 @@ class DataSetImporterExporter:
                     number_of_cores=raw_ds["number_of_cores"],
                     tasks_per_task_set=raw_ds["tasks_per_task_set"],
                     number_of_criticality_levels=raw_ds["number_of_criticality_levels"],
-                    period_set=raw_ds["period_set"]
+                    period_set=set(raw_ds["period_set"])
                 )
 
                 for ts in raw_ds["task_sets"]:
@@ -44,13 +44,6 @@ class DataSetImporterExporter:
             pretty_print: bool = False,
             output_file_path: str = None
     ):
-        task_sets = []
-
-        for ts in data_set.task_sets:
-            task_sets.append([(t.id, t.wcet_base_criticality, t.wcet_own_criticality, t.period, t.deadline, t.criticality_level) for t in ts])
-
-        task_sets2 = [[(t.id, t.wcet_base_criticality, t.wcet_own_criticality, t.period, t.deadline, t.criticality_level) for t in ts] for ts in data_set.task_sets]
-
         data_set_dict = {
             "utilization_level": data_set.utilization_level,
             "number_of_cores": data_set.number_of_cores,

@@ -9,9 +9,8 @@ class Job:
     id: int = attr.ib()
     release_time: int = attr.ib()
     deadline_time: int = attr.ib()
-    wcet: int = attr.ib()
     name: str = attr.ib()
 
     @name.default
     def _name_default(self) -> str:
-        return f"J{self.task.id}-{self.id}"
+        return f"J{self.task.id}_{self.id}"
