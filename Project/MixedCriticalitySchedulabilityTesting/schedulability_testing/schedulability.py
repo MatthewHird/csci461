@@ -22,9 +22,9 @@ class Schedulability:
 
         # schedulers = [IlpScheduler]
         # schedulers = [WfScheduler]
-        schedulers = [FfbbScheduler]
+        # schedulers = [FfbbScheduler]
         # schedulers = [WfScheduler, FfbbScheduler]
-        # schedulers = [IlpScheduler, WfScheduler, FfbbScheduler]
+        schedulers = [IlpScheduler, WfScheduler, FfbbScheduler]
 
         # find input_dir
         root_in_dir = settings.input.input_directory

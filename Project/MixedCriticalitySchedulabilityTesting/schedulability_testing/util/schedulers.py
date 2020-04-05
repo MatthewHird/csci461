@@ -421,7 +421,11 @@ class FfbbScheduler:
         for job in jobs:
             jobs_at_crit_level[job.task.criticality_level].append(job)
         for cl in range(criticality_levels):
-            job_bins: List[JobBin] = [JobBin(max_capacity=mc.job_container.remaining_space) for mc in minor_cycles]
+            job_bins: List[JobBin] = [JobBin(
+                max_capacity=mc.job_container.remaining_space,
+                start_time=mc.start_time,
+                end_time=mc.end_time
+            ) for mc in minor_cycles]
             job_bins = FfbbScheduler._first_fit_branch_and_bound(jobs_at_crit_level[cl], job_bins)
             for i, jb in enumerate(job_bins):
                 for j in jb.jobs:
@@ -441,7 +445,11 @@ class FfbbScheduler:
         for mc in minor_cycles:
             fs = minor_cycle_frames[mc.id]
             for cl in range(criticality_levels):
-                job_bins = [JobBin(f.job_container.remaining_space) for f in fs]
+                job_bins = [JobBin(
+                    max_capacity=f.job_container.remaining_space,
+                    start_time=f.minor_cycle.start_time,
+                    end_time=f.minor_cycle.end_time
+                ) for f in fs]
                 job_bins = FfbbScheduler._first_fit_branch_and_bound(mc.job_container.jobs_at_crit_level[cl], job_bins)
                 for i, jb in enumerate(job_bins):
                     for j in jb.jobs:
@@ -462,7 +470,9 @@ class FfbbScheduler:
         for job in jobs:
             unassigned = True
             for jb in j_bins:
-                if job.task.wcet_base_criticality <= jb.bound_remaining \
+                if job.release_time <= jb.start_time \
+                        and job.deadline_time >= jb.end_time \
+                        and job.task.wcet_base_criticality <= jb.bound_remaining \
                         and job.task.wcet_own_criticality <= jb.max_remaining:
                     jb.insert_job(job)
                     unassigned = False
@@ -481,7 +491,9 @@ class FfbbScheduler:
             for job in jobs:
                 unassigned = True
                 for jb in j_bins:
-                    if job.task.wcet_base_criticality <= jb.bound_remaining \
+                    if job.release_time <= jb.start_time \
+                            and job.deadline_time >= jb.end_time \
+                            and job.task.wcet_base_criticality <= jb.bound_remaining \
                             and job.task.wcet_own_criticality <= jb.max_remaining:
                         jb.insert_job(job)
                         unassigned = False
