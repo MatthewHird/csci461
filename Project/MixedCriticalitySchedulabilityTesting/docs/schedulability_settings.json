@@ -1,0 +1,15 @@
+{
+    "output": {
+        "output_directory": "~/",
+        "generated_directory_prefix": "schedulability_results"
+    },
+    "input": {
+        "input_directory": "~/task_gen_output_directory"
+    },
+    "schedulers": {
+        "ilp": {
+            "solver_timeout": 120
+        }
+    }
+}
+

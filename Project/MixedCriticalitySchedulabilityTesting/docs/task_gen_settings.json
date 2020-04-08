@@ -1,0 +1,54 @@
+{
+    "output": {
+        "print_data_sets": false,
+        "pretty_print": false,
+        "output_directory": "~/",
+        "generated_directory_prefix": "task_sets"
+    },
+    "task_set_validation": {
+        "schedulable_task_sets_only": true,
+        "validator_timeout": 30
+    },
+    "task_generation": {
+        "default": {
+            "number_of_cores": 4,
+            "tasks_per_task_set": 20,
+            "utilization_levels": {
+                "low": 0.2,
+                "high": 3.8,
+                "increment": 0.2
+            },
+            "task_sets_per_utilization_level": 1000,
+            "period_set": [25, 50, 100],
+            "deadline_to_period_range": {
+                "low": 1.0,
+                "high": 1.0
+            },
+            "number_of_criticality_levels": 2,
+            "wcet_at_own_crit_to_base_crit_range": {
+                "low": 1.1,
+                "high": 1.9
+            },
+        },
+        "data_set_collections": [
+            {
+                "name": "cl2_fs25_mc25",
+                "period_set": [25]
+            },
+            {
+                "name": "cl4_fs25_mc25",
+                "period_set": [25],
+                "number_of_criticality_levels": 4
+            },
+            {
+                "name": "cl2_fs25_mc100"
+            },
+            {
+                "name": "cl4_fs25_mc100",
+                "number_of_criticality_levels": 4
+            }
+        ]
+
+    }
+}
+

@@ -14,3 +14,4 @@ class JobContainer:
     def insert_job(self, job: Job):
         self.jobs_at_crit_level[job.task.criticality_level].append(job)
         self.remaining_space -= job.task.wcet_base_criticality
+        self.own_crit_remaining_space -= job.task.wcet_own_criticality

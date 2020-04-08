@@ -125,13 +125,4 @@ class Schedulability:
 
 
 if __name__ == '__main__':
-    from schedulability_testing.util.settings_importer import SettingsImporter
-    logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level='INFO')
-    # Schedulability.run(SettingsImporter.import_settings_file(
-    #     "/home/hirdm/Documents/csci461/Project/MixedCriticalitySchedulabilityTesting/"
-    #     "resources/schedulability_in/schedulability_settings_test.json"
-    # ))
-    Schedulability.run(SettingsImporter.import_settings_file(
-        "/home/hirdm/Documents/csci461/Project/MixedCriticalitySchedulabilityTesting/"
-        "resources/schedulability_in/sched_t1.json"
-    ))
+    pass

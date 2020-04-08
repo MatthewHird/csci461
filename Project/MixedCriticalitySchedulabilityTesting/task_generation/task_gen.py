@@ -138,15 +138,6 @@ class TaskGen:
                 dpr = data_set_collection.deadline_to_period_range
                 deadline = round(period * TaskGen._random_range_float(dpr.low, dpr.high, dpr.increment))
 
-                # NEW_WAY
-                # wcet_own_criticality = round(util * period)
-                # wcet_own = data_set_collection.wcet_at_own_crit_to_base_crit_range
-                # wcet_base_criticality = wcet_own_criticality \
-                #     if criticality_level == num_crit_levels - 1 \
-                #     else round(util * period / TaskGen._random_range_float(
-                #         wcet_own.low, wcet_own.high, wcet_own.increment))
-
-                # OLD_WAY
                 wcet_base_criticality = round(util * period)
                 wcet_own = data_set_collection.wcet_at_own_crit_to_base_crit_range
                 wcet_own_criticality = wcet_base_criticality \
@@ -198,9 +189,4 @@ class TaskGen:
 
 
 if __name__ == '__main__':
-    from task_generation.util.settings_importer import SettingsImporter
-    logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level='INFO')
-    TaskGen.run(SettingsImporter.import_settings_file(
-        "/home/hirdm/Documents/csci461/Project/MixedCriticalitySchedulabilityTesting/"
-        "resources/input/task_gen_test5.json"
-    ))
+    pass

@@ -63,9 +63,6 @@ class MultiCoreCeScheduler:
             for j in range(major_cycle_size // t.period):
                 release_time = j * t.period,
                 deadline_time = (j * t.period) + t.deadline,
-                # NEW_WAY
-                # wcet = t.wcet_own_criticality
-                # OLD_WAY
                 wcet = t.wcet_base_criticality
 
                 jobs[(t.id, j)] = []
